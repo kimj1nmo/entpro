@@ -1,0 +1,40 @@
+.title1 {
+	font-weight: bold;
+	font-size: 100px;
+}
+
+.title {
+	font-weight: bold;
+	font-size: 25px;
+}
+
+.period {
+	color: grey;
+}
+
+.result_menu{
+	margin:10px;
+}
+
+.question_No{
+	display: inline;
+}
+
+.question{
+	display: inline;
+}
+.nsv_question_stat_text{
+	display: inline;
+}
+.filter_sort{
+display: inline;
+float:right;
+
+}
+
+.btn btn-block btn-info{
+	background-color:rgb(71, 178, 228);
+border-color:rgb(71, 178, 228);
+}
+.button_sort{
+}

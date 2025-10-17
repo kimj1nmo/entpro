@@ -1,0 +1,458 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+
+<%@ include file="../../include/header.jsp"%>
+<link rel="stylesheet" href="./directlyCss/project.css">
+<link rel="stylesheet" href="/directlyCss/main.css">
+<link rel="stylesheet" href="/directlyCss/appr.css">
+<!-- sweetAlert -->
+<link rel="stylesheet"
+	href="/adminlte/plugins/sweetalert2/sweetalert2.min.css">
+<script src="/adminlte/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+<!-- ///// content 시작 ///// -->
+<!-- 모든 페이지에 이거 추가해야함 -->
+<div class="content-wrapper">
+	<!--     Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6"></div>
+				<!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="/managepage/main">managepage</a></li>
+						<li class="breadcrumb-item"><a href="/managepage/appr/all">전자결재</a></li>
+						<li class="breadcrumb-item active"><a href="/managepage/appr/addr_detail/${atrzDocNo }">품의서</a></li>
+					</ol>
+				</div>
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+<div class="content">
+	<div class="container-fluid">
+<div class="d-flex vh-100">
+	<div class="container-fluid">
+	  <div class="col-12">
+		<div class="card-header1" >
+		  <div>
+			<h2 style="margin-left: 22%;"><b>품의서
+			
+			
+			</b></h2>
+		  </div>
+		</div>
+			<class="card-body">
+  
+  
+			<table border="" style="width: 90vh; height: 100px;">
+				<colgroup>
+				  <col style="width:20%;">
+				  <col style="width:30%;">
+				  <col style="width:20%;">
+				  <col style="width:30%;">
+				</colgroup>
+				<tr>
+				  <th id="tbTtl">기안부서</th>
+				  <td id="tbCn">인사팀
+  	
+				  </td>
+				  <th id="tbTtl">기안자</th>
+				  <td id="tbCn">김은대(a001)
+				  </td>
+				</tr>
+				<tr>
+				  <th id="tbTtl">문서번호</th>
+				  <td id="tbCn">20
+					<input type="date" id="proRegDate" name="proRegDate" class="ctrl" value="${projectVO.proRegDate}" required hidden>
+					<p class="ctrl_p" style="display : none;">${projectVO.proRegDate}</p>
+				  </td>
+				  <th id="tbTtl">보존 연한/보안 등급</th>
+				  <td id="tbCn">1년 / S등급
+					<input type="date" id="proDeadline" name="proDeadline" class="ctrl" value="${projectVO.proDeadline}"  required hidden>
+					<p class="ctrl_p" style="display : none;">${projectVO.proDeadline}</p>
+				  </td>
+				</tr>
+			  <div class="form-group" style="display: none;">
+				<label for="proNo"><b>프로젝트 번호</b></label>
+				<textarea id="proNo" name="proNo" class="form-control" rows="6" value="${projectVO.proNo}">${projectVO.proNo}</textarea>
+			  </div>
+		</table>
+<table border="1px solid #ddd" class="appr_table" style="width: 90vh;">
+	
+			  <tr>
+				<td class="team" rowspan="4" style="width: 12%;">결재</td>
+				<td class="team">인사팀</td>
+				<td class="team">본부</td>
+				<td class="team"></td>
+				<td class="team"></td>
+				<td class="team"></td>
+				<td class="team"></td>	
+				<td class="team"></td>	
+			  </tr>
+				<tr>
+					<td class="team">대리</td>
+					<td class="team">대표</td>
+					<td class="team"></td>
+					<td class="team"></td>
+					<td class="team"></td>
+					<td class="team"></td>	
+					<td class="team"></td>	
+				</tr>
+			  <tr>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<img src="/resources/upload/2025/01/14/7511d75a-e04f-4039-a0f8-7abaf0fdb73d_승인도장.jpg" alt="잉"width="50px" height="50px">
+					<p class="app_date">2025-02-24</p>
+				</td>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<img src="/resources/upload/2025/01/14/7511d75a-e04f-4039-a0f8-7abaf0fdb73d_승인도장.jpg" alt="잉"width="50px" height="50px">
+					<p class="app_date">2025-02-24</p></td>
+					<td class="stamp">
+						<div id="stampImg"></div>
+					<p class="app_date"></p></td>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<p class="app_date"></p></td>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<p class="app_date"></p></td>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<p class="app_date"></p></td>
+				<td class="stamp">
+					<div id="stampImg"></div>
+					<p class="app_date"></p></td>	
+			  </tr>
+			  <tr>
+				<td class="name">김은대</td>
+				<td class="name">사공미르</td>
+				<td class="name"></td>
+				<td class="name"></td>
+				<td class="name"></td>
+				<td class="name"></td>	
+				<td class="name"></td>	
+			  </tr>
+	 
+			  <tr>
+				<td class="team" rowspan="3" style="width: 12%;">참조</td>
+				<td class="name" colspan="7" >
+					<input type="text" class="ref_in" placeholder="   클릭 후 입력"  autocomplete="off" style="display: flex; justify-content: left;" hidden>
+					<p style="display: flex; justify-content: left;">송세진</p>
+				
+				</td>	
+			  </tr>
+		</table>
+
+		<div class="app_contents" style="word-wrap:break-all;">
+		<p class="app_ttl">차세대 시스템 도입을 위한 신규 서버 및 개발 장비 구매 요청</p>
+		<pre>현재 당사에서는 기존 시스템의 노후화로 인해 성능 저하 및 유지보수 비용 증가 문제가 발생하고 있습니다.
+이에 따라 차세대 시스템을 도입하고자 하며, 원활한 개발 및 운영을 위해 신규 서버 및 개발 장비의 구매가 필요합니다.\n\n
+구체적으로, 현재 사용 중인 서버는 처리 속도가 느려지고 있으며, 트래픽 증가에 따른 부하를 감당하기 어려운 상황입니다. 
+또한 개발자들이 사용 중인 노트북 및 데스크톱 장비의 사양이 낮아 최신 개발 환경을 활용하는 데 어려움이 있습니다. 
+따라서 최적의 개발 및 운영 환경을 조성하기 위해 다음과 같은 장비를 구매하고자 합니다. 
+1. **서버 장비**: 고성능 CPU, 확장 가능한 메모리 및 SSD를 갖춘 최신 서버 . 
+2. **개발용 노트북**: 최신 프로세서 및 충분한 RAM을 탑재한 노트북 5대
+3. **모니터 및 기타 장비**: 개발 편의성을 위한 듀얼 모니터 및 기타 필수 장비
+해당 장비 도입을 통해 시스템 성능을 개선하고 유지보수 비용을 절감할 수 있을 것으로 기대됩니다. 
+또한 개발 환경을 최신화함으로써 개발자들의 생산성을 향상시키고, 향후 프로젝트 수행 시 원활한 협업이 가능하도록 지원할 수 있습니다.
+이에 따라 신규 서버 및 개발 장비 구매를 승인 요청드리오니, 검토 후 긍정적인 회신 부탁드립니다.</pre>
+		<hr style="width: 90vh; margin-left:0;">
+		</div>
+
+
+
+<style>
+.addfile{
+	background-color: transparent; border: 0; color: darkturquoise;
+}
+</style>
+<!-- 댓글 영역 시작~ -->
+<div class="comment_area">
+
+		<div >
+			<div class="top">
+				<span style="padding-right: 20px;">별첨</span>
+					<button class="addfile" id="fileBtn">파일 첨부</button>
+				<span class="weakgray">|</span>
+				<button class="addfile" id="docBtn">관련문서 첨부</button>
+			</div>
+			<div class="filebox">
+				<span class="cont_file" style="float: left; " hidden>파일목록
+				</span><br/><br/>
+			</div>
+		</div>
+<script>
+	$("#fileBtn").click(function(){
+		console.log("파일첨부한당!");
+		$("#file_modal").modal("show");
+	})
+	$("#docBtn").click(function(){
+		console.log("문서첨부한당!");
+		$("#doc_modal").modal("show");
+	})
+<!-- </script> -->
+
+
+<!-- 		<div class="card-header p-0 pt-1"> -->
+<!-- 			<ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist"> -->
+<!-- 				<li class="nav-item"> -->
+<!-- 					<a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">의견</a> -->
+<!-- 				</li> -->
+<!-- 				<li class="nav-item"> -->
+<!-- 					<a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">이력</a> -->
+<!-- 				</li> -->
+<!-- 			</ul> -->
+<!-- 		</div> -->
+
+
+<!-- 		<div class="card-body"> -->
+<!-- 			<div class="tab-content" id="custom-tabs-one-tabContent"> -->
+<!-- 				<div class="tab-pane fade active show" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab"> -->
+<!-- 					 의견 여기다 -->
+<!-- 							(의견 탭)댓글양식 시작~ -->
+<!-- 							<div class="card-footer card-comments"> -->
+<!-- 								<div class="card-comment"> -->
+<!-- 									User image -->
+<!-- 									<img class="img-circle img-sm" src="../dist/img/user3-128x128.jpg" alt="User Image"> -->
+
+<!-- 									<div class="comment-text"> -->
+<!-- 										<span class="username"> -->
+<!-- 											사용자 이름 -->
+<!-- 											<span class="text-muted float-right">8:03 PM Today</span> -->
+<!-- 										</span>/.username -->
+<!-- 										댓글내용입. -->
+<!-- 									</div> -->
+<!-- 									/.comment-text -->
+<!-- 								</div> -->
+<!-- 								/.card-comment -->
+<!-- 								<div class="card-comment"> -->
+<!-- 									User image -->
+<!-- 									<img class="img-circle img-sm" src="../dist/img/user5-128x128.jpg" alt="User Image"> -->
+
+<!-- 									<div class="comment-text"> -->
+<!-- 										<span class="username"> -->
+<!-- 											사용자 -->
+<!-- 											<span class="text-muted float-right">8:03 PM Today</span> -->
+<!-- 										</span>/.username -->
+<!-- 										댓글... -->
+<!-- 									</div> -->
+<!-- 									/.comment-text -->
+<!-- 								</div> -->
+<!-- 								/.card-comment -->
+<!-- 							</div> -->
+
+<!-- 							(의견 탭)댓글양식 종료~ -->
+<!-- 							(의견 탭)댓글입력창 시작~ -->
+<!-- 					<div class="card-footer"> -->
+<!-- 						<form action="#" method="post"> -->
+<!-- 							<div class="input-group"> -->
+<!-- 								<input type="text" name="message" placeholder="Type Message ..." class="form-control"> -->
+<!-- 								<span class="input-group-append"> -->
+<!-- 									<button type="submit" class="btn btn-primary">Send</button> -->
+<!-- 								</span> -->
+<!-- 							</div> -->
+<!-- 						</form> -->
+<!-- 					</div> -->
+
+<!-- 					(의견 탭)댓글입력창 종료~ -->
+
+				</div>
+				
+				<div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+
+					<!-- (이력 탭)댓글양식 시작~ -->
+					<div class="card-footer card-comments">
+						<div class="card-comment">
+							<!-- User image -->
+							<img class="img-circle img-sm" src="../dist/img/user3-128x128.jpg" alt="User Image">
+
+							<div class="comment-text">
+								<span class="username">
+									사용자 이름
+									<span class="text-muted float-right">8:03 PM Today</span>
+								</span><!-- /.username -->
+								댓글내용입.
+							</div>
+							<!-- /.comment-text -->
+						</div>
+						<!-- /.card-comment -->
+						<div class="card-comment">
+							<!-- User image -->
+							<img class="img-circle img-sm" src="../dist/img/user5-128x128.jpg" alt="User Image">
+
+							<div class="comment-text">
+								<span class="username">
+									사용자
+									<span class="text-muted float-right">8:03 PM Today</span>
+								</span><!-- /.username -->
+								댓글...
+							</div>
+							<!-- /.comment-text -->
+						</div>
+						<!-- /.card-comment -->
+					</div>
+
+					<!-- (이력 탭)댓글양식 종료~ -->
+					
+
+				</div>
+			</div>
+		<!-- </div> -->
+
+		<!-- /.card -->
+	<!-- </div> -->
+<!-- </div> -->
+<!-- 댓글 영역 종료~ -->
+</div>
+
+<%@ include file="../../include/footer.jsp" %>  
+
+
+
+
+<!-- 첨부파일 모달 들어가실게요~ -->
+<div class="modal fade show" id="file_modal" style="display: none; padding-right: 17px;" aria-modal="true" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">관련문서 첨부</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body" >
+				<div style="border: 5px dashed #ddd; width: 100%;">
+					<p>별첨</p>
+					<input type="file" value="파일추가">
+					<br/>
+				</div>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- 첨부파일 모달 나가실게요~ -->
+<!-- 문서첨부 모달 들어가실게요~ -->
+<div class="modal fade show" id="doc_modal" style="display: none; padding-right: 17px;" aria-modal="true" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">관련 문서 첨부</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<section class="content">
+					<div class="container-fluid">
+										<div class="card">
+									<div class="card-header">
+										<h3 class="card-title">전체</h3>
+										<p></p>
+										<div class="card-tools">
+											<div class="input-group input-group-sm" style="width: 150px;">
+												<input type="text" name="keyword" value="" class="form-control float-right" placeholder="검색어 입력">
+				
+												<div class="input-group-append">
+													<button type="button" id="btnSearch" class="btn btn-default">
+														<i class="fas fa-search"></i>
+													</button>
+												</div>
+											</div>
+											<!-- /// 검색 끝 /// -->
+										</div>
+									</div>
+				
+				
+								<div class="card-body table-responsive p-0">
+									<!-- 성명으로 오름차순 정렬 -->
+									<table class="table table-bordered table-hover">
+										<thead>
+											<tr>
+													<th class="fNo">문서 번호</th>
+													<th class="fTitle">제목</th>
+													<th class="fName">기안자</th>
+													<th class="fDate">기안일</th>
+													<th class="fDiv">구분</th>
+													<th class="fState">상태</th>
+											</tr>
+										</thead>
+										<tbody id="tby">
+											<tr>
+																		
+												<td class="fNo">TE-재직-20250108-0001</td>
+												<td class="fTitle"><a href="addr_detail">[시험 사용] 푸미서</a></td>
+												<td class="fName">5관리자</td>
+												<td class="fDate">2025-01-08</td>
+												<td class="fDiv"><span class="tag tag-success">기안</span></td>
+												<td class="fState">진행</td>
+											</tr>
+											<tr>
+												<td class="fNo">TE-재직-20250108-0001</td>
+												<td class="fTitle"><a href="con_detail">[시험 사용] 엄무열락/td&gt;
+												</a></td><td class="fName">5관리자</td>
+												<td class="fDate">2025-01-08</td>
+												<td class="fDiv"><span class="tag tag-success">기안</span></td>
+												<td class="fState">진행</td>
+											</tr>
+											<tr>
+												<td class="fNo">TE-재직-20250108-0001</td>
+												<td class="fTitle"><a href="cert_detail">[시험 사용] 제직중명서</a></td>
+												<td class="fName">5관리자</td>
+												<td class="fDate">2025-01-08</td>
+												<td class="fDiv"><span class="tag tag-success">기안</span></td>
+												<td class="fState">진행</td>
+											</tr>
+											<tr>
+												<td class="fNo">TE-재직-20250108-0001</td>
+												<td class="fTitle">[시험 사용] 으걀걀</td>
+												<td class="fName">5관리자</td>
+												<td class="fDate">2025-01-08</td>
+												<td class="fDiv"><span class="tag tag-success">기안</span></td>
+												<td class="fState">진행</td>
+											</tr>
+																		</tbody>
+									</table>
+								</div>
+								<div class="card-body table-responsive p-0" id="divDetailArea">
+								</div>
+								<!-- /.card-header -->
+								</div>
+				<div id="plusDoc">
+					첨부영역
+				</div>
+				
+								<div class="card-footer" id="divPagingArea"></div>
+									</div>
+									<!-- /.card-body -->
+								</section>
+			</div>
+			
+			<div class="modal-footer justify-content-between">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+
+
+
+
+
+
+<!-- 문서첨부 모달 나가실게요~ -->
+ 

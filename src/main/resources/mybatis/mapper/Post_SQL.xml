@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.comm.PostMapper">
+	<!-- 그룹 이름 조회 -->
+	<select id="getGroupName" parameterType="int" resultType="String">
+	SELECT GROUP_NAME
+	FROM GROUPS
+	WHERE GROUP_NO=#{groupNo}
+	</select>
+
+	<!-- 신고 처리 여부 -->	
+	<select id="getCommReportYn" parameterType="int" resultMap="reportYnMap">
+    SELECT c.COMM_NO,
+           NVL(r.COMM_REPORT_YN, 0) AS commReportYn
+    FROM community c
+    LEFT JOIN comm_report r ON c.COMM_NO = r.COMM_NO
+    WHERE c.group_no = #{groupNo}
+</select>
+
+	<!-- 커뮤니티 가입자 수 조회 -->
+	<select id="getCountMem" parameterType="int" resultType="int">
+	select count(*)
+	from COMMUNITY_REGDATA
+	where group_no=#{groupNo}
+	</select>
+
+	<!-- 커뮤니티 리스트 -->
+	<select id="list" parameterType="int" resultMap="postMap">
+	SELECT c.comm_no
+			, c.group_no
+		    , c.mem_id
+		    , c.comm_cn
+		    , c.comm_write_date
+		    , c.comm_updt_date
+		    , c.comm_view
+		    , c.comm_status
+		    , c.memship_state
+		    , c.file_group_no AS C_FILE_GROUP_NO
+            , g.FILE_GROUP_NO AS G_FILE_GROUP_NO
+	        , cr.COMM_REG_NO 
+	        , cr.GROUP_NO AS GROUP_NO_CR
+	        , cr.COMM_REG_JOIN
+	        , cr.COMM_REG_NICK
+	        , cr.MEM_ID AS MEM_ID_CR
+	        , cr.file_group_no AS CR_FILE_GROUP_NO
+	        , FG.FILE_REGDATE
+			, FD.FILE_SN
+            , FD.FILE_ORIGINAL_NAME
+			, FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE
+			, FD.FILE_EXT, FD.FILE_MIME
+            , FD.FILE_FANCYSIZE
+			, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+            , fd_2.FILE_SAVE_LOCATE as pro_save_locate
+            , fd_3.FILE_SAVE_LOCATE as group_save_locate
+            , r.COMM_REPORT_YN AS commReportYn -- 신고 처리 여부 추가
+		FROM community c 
+	    left outer JOIN community_regdata cr ON(c.MEM_ID = cr.MEM_ID)
+        left outer JOIN GROUPS g ON(c.GROUP_NO = g.GROUP_NO)
+	    LEFT OUTER JOIN FILE_GROUP FG ON(c.FILE_GROUP_NO  = FG.FILE_GROUP_NO)
+		LEFT OUTER JOIN FILE_DETAIL FD ON(FG.FILE_GROUP_NO = FD.FILE_GROUP_NO)
+        LEFT OUTER JOIN FILE_DETAIL FD_2 ON(cr.file_group_no = FD_2.FILE_GROUP_NO)
+        LEFT OUTER JOIN FILE_DETAIL FD_3 ON(g.file_group_no = FD_3.FILE_GROUP_NO)
+         LEFT JOIN comm_report r ON c.COMM_NO = r.COMM_NO
+		WHERE c.group_no = #{groupNo} and cr.group_no=#{groupNo}
+		order by c.comm_write_date desc
+	</select>
+	
+	<!-- 특정 하나의 커뮤니티 정보(GroupsVO로 리턴) -->
+	<select id="communityOne" parameterType="int" resultMap="groupMap">
+		SELECT  g.GROUP_NO
+            , g.GROUP_NAME
+            , g.GROUP_BIRTH
+            , g.GROUP_DSPGN
+            , g.GROUP_INTRCN
+            , g.FILE_GROUP_NO
+            , g.GROUP_BIRTH_INPUTTER
+            , g.GROUP_DSPGN_INPUTTER
+	        , FG.FILE_REGDATE
+			, FD.FILE_SN, FD.FILE_ORIGINAL_NAME
+			, FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE
+			, FD.FILE_EXT, FD.FILE_MIME, FD.FILE_FANCYSIZE
+			, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+			, (SELECT COUNT(*) FROM COMMUNITY_REGDATA CR WHERE CR.GROUP_NO = G.GROUP_NO) COMMUNITY_COUNT
+		FROM groups G
+	    LEFT OUTER JOIN FILE_GROUP FG ON(G.FILE_GROUP_NO  = FG.FILE_GROUP_NO)
+		LEFT OUTER JOIN FILE_DETAIL FD ON(FG.FILE_GROUP_NO = FD.FILE_GROUP_NO)
+		WHERE g.group_no = #{groupNo}
+	</select>
+	
+	
+	
+	<!-- 아티스트 정보  리스트 -->
+	<select id="artist" parameterType="int" resultMap="groupMap">
+	SELECT  g.GROUP_NO
+            , g.GROUP_NAME
+            , g.GROUP_BIRTH
+            , g.GROUP_DSPGN
+            , g.GROUP_INTRCN
+            , g.FILE_GROUP_NO AS G_FILE_GROUP_NO
+            , g.GROUP_BIRTH_INPUTTER
+            , g.GROUP_DSPGN_INPUTTER
+	        , FG.FILE_REGDATE
+			, FD.FILE_SN, FD.FILE_ORIGINAL_NAME
+			, FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE
+			, FD.FILE_EXT, FD.FILE_MIME, FD.FILE_FANCYSIZE
+			, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+            , fd_2.FILE_SAVE_LOCATE as pro_save_locate
+		FROM groups G
+	    LEFT OUTER JOIN FILE_GROUP FG ON(G.FILE_GROUP_NO  = FG.FILE_GROUP_NO)
+		LEFT OUTER JOIN FILE_DETAIL FD ON(FG.FILE_GROUP_NO = FD.FILE_GROUP_NO)
+        		LEFT OUTER JOIN FILE_DETAIL FD_2 ON(g.FILE_GROUP_NO = FD_2.FILE_GROUP_NO)
+		WHERE g.group_no = #{groupNo}
+	
+	</select>
+	
+	<!-- 커뮤니티 테이블에 글 insert -->
+<insert id="createPost" parameterType="kr.or.ddit.vo.CommunityVO">
+    <selectKey keyProperty="commNo" resultType="int" order="BEFORE">
+        SELECT community_seq.NEXTVAL FROM dual
+    </selectKey>
+    INSERT INTO community (
+        comm_no, group_no, mem_id, comm_cn,
+        comm_write_date, comm_updt_date, comm_view, comm_status, memship_state
+        <if test="fileGroupNo != null and fileGroupNo != ''">
+            , FILE_GROUP_NO
+        </if>
+    ) 
+    VALUES (
+        #{commNo}, #{groupNo}, #{memId}, #{commCn}, 
+        SYSDATE, SYSDATE, 0, 1, #{memshipState}
+        <if test="fileGroupNo != null and fileGroupNo != ''">
+            , #{fileGroupNo}
+        </if>
+    )
+</insert>
+
+	<!-- 
+	//GroupNo: 3, CommNo: 127
+	 -->
+	<select id="detail" resultMap="postMap">
+	SELECT c.comm_no,
+		   c.group_no,
+		   c.mem_id,
+		   c.comm_cn,
+		   c.comm_write_date,
+		   c.comm_updt_date,
+		   c.comm_view,
+		   c.comm_status,
+		   c.memship_state,
+		   c.file_group_no AS C_FILE_GROUP_NO,
+		   (SELECT DISTINCT 1 FROM COMM_LIKE G WHERE G.COMM_NO = c.comm_no AND G.MEM_ID = #{memId} AND G.COMM_LIKE_YN = 1) IS_LIKED,
+           (SELECT COUNT(*) FROM COMM_LIKE CL WHERE CL.COMM_NO = c.comm_no AND CL.COMM_LIKE_YN = 1) LIKE_COUNT,
+		   cr.COMM_REG_NO,
+		   cr.GROUP_NO,
+		   cr.COMM_REG_JOIN,
+		   cr.COMM_REG_NICK,
+		   cr.MEM_ID,
+		   cr.file_group_no AS CR_FILE_GROUP_NO,
+		   FG.FILE_REGDATE,
+		   FD.FILE_SN,
+		   FD.FILE_ORIGINAL_NAME,
+		   FD.FILE_SAVE_NAME,
+		   FD.FILE_SAVE_LOCATE,
+		   FD.FILE_SIZE,
+		   FD.FILE_EXT,
+		   FD.FILE_MIME,
+		   FD.FILE_FANCYSIZE,
+		   FD.FILE_SAVE_DATE,
+		   FD.FILE_DOWNCOUNT,
+		   fd_2.FILE_SAVE_LOCATE AS pro_save_locate -- 프로필 사진 경로 추가
+	FROM community c
+	LEFT OUTER JOIN community_regdata cr ON c.MEM_ID = cr.MEM_ID
+	LEFT OUTER JOIN FILE_GROUP FG ON c.FILE_GROUP_NO = FG.FILE_GROUP_NO
+	LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+	LEFT OUTER JOIN FILE_DETAIL FD_2 ON cr.file_group_no = FD_2.FILE_GROUP_NO -- 프로필 사진 JOIN 추가
+	WHERE c.comm_no = #{commNo}
+	  AND cr.group_no = #{groupNo}
+</select>
+
+	<!--  게시물 상세 보기
+	<select id="detail" resultMap="postMap">
+	SELECT c.comm_no
+			, c.group_no
+		    , c.mem_id
+		    , c.comm_cn
+		    , c.comm_write_date
+		    , c.comm_updt_date
+		    , c.comm_view
+		    , c.comm_status
+		    , c.memship_state
+		    , c.file_group_no AS C_FILE_GROUP_NO
+	        , cr.COMM_REG_NO
+	        , cr.GROUP_NO
+	        , cr.COMM_REG_JOIN
+	        , cr.COMM_REG_NICK
+	        , cr.MEM_ID
+	        , cr.file_group_no AS CR_FILE_GROUP_NO
+	        , FG.FILE_REGDATE
+			, FD.FILE_SN, FD.FILE_ORIGINAL_NAME
+			, FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE
+			, FD.FILE_EXT, FD.FILE_MIME, FD.FILE_FANCYSIZE
+			, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM community c 
+  LEFT OUTER JOIN community_regdata cr ON c.MEM_ID = cr.MEM_ID
+LEFT OUTER JOIN FILE_GROUP FG ON c.FILE_GROUP_NO = FG.FILE_GROUP_NO
+LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+	    where c.comm_no= #{commNo} and cr.group_no=#{groupNo}
+	</select>
+	-->
+	
+	<update id="updatePost" parameterType="kr.or.ddit.vo.CommunityVO">
+    UPDATE community
+    SET 
+        comm_cn = #{commCn},
+        comm_updt_date = SYSDATE
+    WHERE comm_no = #{commNo}
+</update>
+	
+	
+	<!--  게시물 수정
+	<update id="updatePost" parameterType="kr.or.ddit.vo.CommunityVO">
+		UPDATE COMMUNITY
+		SET
+		       comm_cn = #{commCn}
+		     , comm_updt_date = SYSDATE
+		     , memship_state = #{memshipState}
+    <if test="fileGroupNo != null">
+        , file_group_no = #{fileGroupNo}
+    </if>
+		WHERE  comm_no = #{commNo}
+	</update>
+	-->
+	
+	<!--  게시물 삭제 -->
+<delete id="deletePost" parameterType="int">
+    DELETE FROM community WHERE comm_no = #{commNo}
+</delete>
+	
+	<!-- 게시글 선택 삭제 -->
+	<delete id="deleteSelected">
+    DELETE FROM community
+    WHERE comm_no IN
+    <foreach item="commNo" collection="commNoList" open="(" separator="," close=")">
+        #{commNo}
+    </foreach>
+</delete>
+	
+	<!-- 커뮤니티 회원 등록 -->
+	<insert id="createReg" parameterType="kr.or.ddit.vo.ComRegVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="commRegNo">
+			SELECT NVL(MAX(comm_reg_no),0)+1 FROM community_regdata
+		</selectKey>
+			INSERT INTO community_regdata (
+			    comm_reg_no,
+			    group_no,
+			    comm_reg_join,
+			    comm_reg_nick,
+			    mem_id
+			    <if test="fileGroupNo!=null and fileGroupNo!=''">
+			 , FILE_GROUP_NO
+			 </if>
+			 ) 
+			VALUES ( #{commRegNo}, #{groupNo}, SYSDATE, #{commRegNick}, #{memId} 
+			<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, #{fileGroupNo}
+			</if>
+			)
+	</insert>
+	
+	<!--  커뮤니티 가입 확인 -->
+	 <select id="isUserMemberOfGroup" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM COMMUNITY_REGDATA
+        WHERE group_no = #{groupNo}
+          AND mem_id = #{memId}
+    </select>
+    
+    <!-- 회원 닉네임 조회 -->
+<select id="getCommunityNickname" parameterType="map" resultType="CommunityVO">
+    SELECT comm_reg_nick AS commRegNick
+    FROM community_regdata
+    WHERE mem_id = #{memId}
+      AND group_no = #{groupNo}
+</select>
+	<!-- 닉네임 변경 -->
+<update id="updateCommunityNickname" parameterType="kr.or.ddit.vo.CommunityVO">
+    UPDATE COMMUNITY_REGDATA
+    SET COMM_REG_NICK = #{commRegNick}
+    WHERE MEM_ID = #{memId}
+</update>
+
+	<!-- 커뮤 프사 변경 -->
+<update id="updateFileSaveLocate" parameterType="kr.or.ddit.vo.CommunityVO">
+    UPDATE FILE_DETAIL
+    SET FILE_SAVE_LOCATE = #{fileSaveLocate}
+    WHERE FILE_GROUP_NO = 
+        (SELECT FILE_GROUP_NO 
+         FROM COMMUNITY_REGDATA 
+         WHERE MEM_ID = #{memId} 
+         AND GROUP_NO = #{groupNo})  <!-- GROUP_NO도 조건에 추가 -->
+</update>
+
+    
+    
+    <!-- 댓글 리스트 -->
+    <select id="selectComment"  parameterType="kr.or.ddit.vo.CommunityVO"
+		resultType="kr.or.ddit.vo.CommentVO">
+    	
+		
+WITH T AS (
+        SELECT
+            repy.CMMT_NO,
+            repy.CMMT_PARENT_NO,
+            repy.COMM_NO,
+            repy.MEM_ID,
+            repy.CMMT_DATE,
+            repy.CMMT_CN,
+            repy.CMMT_YN,
+            (SELECT MAX(E.COMM_REG_NICK)
+             FROM COMMUNITY_REGDATA E
+             WHERE E.MEM_ID = repy.MEM_ID
+               AND E.GROUP_NO = comm.GROUP_NO) AS COMM_REG_NICK,
+            (SELECT MAX(FILE_SAVE_LOCATE)
+             FROM FILE_DETAIL
+             WHERE FILE_GROUP_NO = 
+                 (SELECT MAX(FILE_GROUP_NO)
+                  FROM COMMUNITY_REGDATA
+                  WHERE MEM_ID = repy.MEM_ID
+                    AND GROUP_NO = comm.GROUP_NO)
+               AND FILE_SN = 1) AS FILE_SAVE_LOCATE,
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM MEMSHIP_DATA md
+                    JOIN COMMUNITY_REGDATA cr ON md.COMM_REG_NO = cr.COMM_REG_NO
+                    WHERE cr.MEM_ID = repy.MEM_ID
+                      AND cr.GROUP_NO = comm.GROUP_NO
+                      AND (md.MEMSHIP_YN = 1 OR md.MEMSHIP_END_DATE > SYSDATE)
+                ) THEN 1
+                ELSE 0
+            END AS IS_MEMBERSHIP
+        FROM
+            COMMENT_REPY repy
+        JOIN COMMUNITY comm ON repy.COMM_NO = comm.COMM_NO
+        WHERE repy.CMMT_YN != 1
+          AND comm.GROUP_NO = #{groupNo}
+          AND comm.COMM_NO = #{commNo}
+    )
+    SELECT 
+        T.CMMT_NO, 
+        T.CMMT_PARENT_NO, 
+        T.COMM_NO, 
+        T.MEM_ID, 
+        T.COMM_REG_NICK, 
+        T.FILE_SAVE_LOCATE, 
+        T.CMMT_DATE, 
+        T.CMMT_CN, 
+        T.CMMT_YN, 
+        T.IS_MEMBERSHIP,
+        LEVEL AS LVL
+    FROM T
+    START WITH T.CMMT_PARENT_NO IS NULL
+    CONNECT BY PRIOR T.CMMT_NO = T.CMMT_PARENT_NO
+    ORDER SIBLINGS BY T.CMMT_NO
+
+    </select>
+    
+    <select id="selectCommentWithMembership" parameterType="kr.or.ddit.vo.CommunityVO"
+        resultType="kr.or.ddit.vo.CommentVO">
+     WITH T AS (
+        SELECT
+            repy.CMMT_NO,
+            repy.CMMT_PARENT_NO,
+            repy.COMM_NO,
+            repy.MEM_ID,
+            repy.CMMT_DATE,
+            repy.CMMT_CN,
+            repy.CMMT_YN,
+            (SELECT MAX(E.COMM_REG_NICK)
+             FROM COMMUNITY_REGDATA E
+             WHERE E.MEM_ID = repy.MEM_ID
+               AND E.GROUP_NO = comm.GROUP_NO) AS COMM_REG_NICK,
+            (SELECT MAX(FILE_SAVE_LOCATE)
+             FROM FILE_DETAIL
+             WHERE FILE_GROUP_NO = 
+                 (SELECT MAX(FILE_GROUP_NO)
+                  FROM COMMUNITY_REGDATA
+                  WHERE MEM_ID = repy.MEM_ID
+                    AND GROUP_NO = comm.GROUP_NO)
+               AND FILE_SN = 1) AS FILE_SAVE_LOCATE,
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM MEMSHIP_DATA md
+                    JOIN COMMUNITY_REGDATA cr ON md.COMM_REG_NO = cr.COMM_REG_NO
+                    WHERE cr.MEM_ID = repy.MEM_ID
+                      AND cr.GROUP_NO = comm.GROUP_NO
+                      AND (md.MEMSHIP_YN = 1 OR md.MEMSHIP_END_DATE > SYSDATE)
+                ) THEN 1
+                ELSE 0
+            END AS IS_MEMBERSHIP
+        FROM
+            COMMENT_REPY repy
+        JOIN COMMUNITY comm ON repy.COMM_NO = comm.COMM_NO
+        WHERE repy.CMMT_YN != 1
+          AND comm.GROUP_NO = #{groupNo}
+          AND comm.COMM_NO = #{commNo}
+    )
+    SELECT 
+        T.CMMT_NO, 
+        T.CMMT_PARENT_NO, 
+        T.COMM_NO, 
+        T.MEM_ID, 
+        T.COMM_REG_NICK, 
+        T.FILE_SAVE_LOCATE, 
+        T.CMMT_DATE, 
+        T.CMMT_CN, 
+        T.CMMT_YN, 
+        T.IS_MEMBERSHIP,
+        LEVEL AS LVL
+    FROM T
+    START WITH T.CMMT_PARENT_NO IS NULL
+    CONNECT BY PRIOR T.CMMT_NO = T.CMMT_PARENT_NO
+    ORDER SIBLINGS BY T.CMMT_NO
+    </select>
+    <!-- 특정회원의 댓글 리스트222 --> 
+<!--     <select id="selectComment2" parameterType="kr.or.ddit.vo.CommunityVO" -->
+<!--         resultType="kr.or.ddit.vo.CommentVO"> -->
+<!--     WITH T AS ( -->
+<!--         SELECT -->
+<!--             repy.CMMT_NO, -->
+<!--             repy.CMMT_PARENT_NO, -->
+<!--             repy.COMM_NO, -->
+<!--             (SELECT MAX(E.COMM_REG_NICK)  -->
+<!--              FROM COMMUNITY_REGDATA E  -->
+<!--              WHERE E.MEM_ID = repy.MEM_ID  -->
+<!--                AND E.GROUP_NO = comm.GROUP_NO) AS COMM_REG_NICK, -->
+<!--             (SELECT MAX(FILE_SAVE_LOCATE) -->
+<!--              FROM FILE_DETAIL -->
+<!--              WHERE FILE_GROUP_NO =  -->
+<!--                  (SELECT MAX(FILE_GROUP_NO)  -->
+<!--                   FROM COMMUNITY_REGDATA  -->
+<!--                   WHERE MEM_ID = repy.MEM_ID -->
+<!--                     AND GROUP_NO = comm.GROUP_NO) -->
+<!--              AND FILE_SN = 1) AS FILE_SAVE_LOCATE, -->
+<!--             repy.MEM_ID, -->
+<!--             repy.CMMT_DATE, -->
+<!--             repy.CMMT_CN, -->
+<!--             repy.CMMT_YN -->
+<!--         FROM -->
+<!--             COMMENT_REPY repy -->
+<!--         JOIN COMMUNITY comm ON repy.COMM_NO = comm.COMM_NO -->
+<!--         WHERE repy.CMMT_YN != 1 -->
+<!--           AND comm.GROUP_NO = #{groupNo} -->
+<!--           AND comm.COMM_NO = #{commNo} -->
+<!--           AND repy.MEM_ID = #{memId}  MEM_ID 조건 추가 -->
+<!--     ) -->
+<!--     SELECT  -->
+<!--         T.CMMT_NO,  -->
+<!--         T.CMMT_PARENT_NO,  -->
+<!--         T.COMM_NO,  -->
+<!--         T.MEM_ID,  -->
+<!--         T.COMM_REG_NICK,  -->
+<!--         T.FILE_SAVE_LOCATE,  -->
+<!--         T.CMMT_DATE,  -->
+<!--         T.CMMT_CN,  -->
+<!--         T.CMMT_YN,  -->
+<!--         LEVEL AS LVL -->
+<!--     FROM T -->
+<!--     START WITH T.CMMT_PARENT_NO IS NULL -->
+<!--     CONNECT BY PRIOR T.CMMT_NO = T.CMMT_PARENT_NO -->
+<!--     ORDER SIBLINGS BY T.CMMT_NO -->
+<!-- </select> -->
+    
+    <!-- 특정회원의 댓글 리스트222 --> 
+     <select id="selectComment2" parameterType="map" resultMap="postMap">
+    SELECT
+    cr.CMMT_NO,               -- 댓글 번호
+    cr.CMMT_CN,  -- 댓글 내용
+    cr.MEM_ID,                -- 댓글 작성자 (회원 ID)
+    cr.CMMT_DATE,             -- 댓글 작성일
+    cr.CMMT_YN,               -- 댓글 상태
+    c.GROUP_NO,               -- 그룹 번호
+    c.COMM_NO,
+    c.COMM_CN,    -- 게시글 내용 (COMMUNITY에서 가져옴)
+    crw.COMM_REG_NICK        -- 게시글 작성자 닉네임 (COMMUNITY_REGDATA에서 가져옴)
+FROM
+    COMMENT_REPY cr
+JOIN
+    COMMUNITY c
+    ON cr.COMM_NO = c.COMM_NO
+JOIN
+    COMMUNITY_REGDATA crw
+    ON c.MEM_ID = crw.MEM_ID    -- COMMUNITY 작성자의 MEM_ID와 COMMUNITY_REGDATA에서의 MEM_ID 연결
+    AND c.GROUP_NO = crw.GROUP_NO -- 같은 GROUP_NO에 해당하는 작성자의 닉네임 가져오기
+WHERE
+    c.GROUP_NO = #{groupNo}      -- 특정 그룹 번호 (parameter)
+    AND cr.MEM_ID = #{memId}     -- 특정 회원의 댓글 (parameter)
+ORDER BY
+    cr.CMMT_DATE DESC           -- 댓글 작성일 기준으로 내림차순 정렬
+    </select>
+    
+    
+    <!-- 댓글 하나 가져오기 -->
+   	<select id="selectOneComment" parameterType="kr.or.ddit.vo.CommentVO"
+	resultType="kr.or.ddit.vo.CommentVO">
+	SELECT CMMT_NO, CMMT_PARENT_NO, COMM_NO, MEM_ID, CMMT_DATE, CMMT_CN, CMMT_YN
+	FROM COMMENT_REPY
+	WHERE CMMT_NO = #{commtNo}
+		</select>
+		
+		
+		<!-- 댓글 등록 -->
+		<insert id="createComment" parameterType="kr.or.ddit.vo.CommentVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="cmmtNo">
+			SELECT NVL(MAX(CMMT_NO),0) + 1 FROM COMMENT_REPY
+		</selectKey>
+	
+		INSERT INTO COMMENT_REPY(CMMT_NO
+		<if test="cmmtParentNo!=null and cmmtParentNo!=''">
+		, CMMT_PARENT_NO
+		</if>
+        , COMM_NO, MEM_ID, CMMT_DATE, CMMT_CN, CMMT_YN)
+		VALUES(#{cmmtNo}
+		<if test="cmmtParentNo!= null and cmmtParentNo!=''">
+		, #{cmmtParentNo}
+		</if>
+		,#{commNo},#{memId},SYSDATE, #{cmmtCn}, 0)
+	</insert>
+	
+	<!-- 댓글 수정 -->
+	<update id="updateComment" parameterType="kr.or.ddit.vo.CommentVO">
+		UPDATE COMMENT_REPY
+		SET CMMT_CN = #{cmmtCn}
+		WHERE CMMT_NO = #{cmmtNo}
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<update id="updateDelete" parameterType="kr.or.ddit.vo.CommentVO">
+		UPDATE COMMENT_REPY
+		SET CMMT_YN = '1'
+		WHERE CMMT_NO = #{cmmtNo}
+	</update>
+	
+	
+	<!-- 게시글 좋아요
+	<insert id="insertLike" parameterType="kr.or.ddit.vo.CommLikeVO">
+	<selectKey resultType="int" order="BEFORE" keyProperty="commLikeNo">
+		SELECT NVL(MAX(comm_like_no),0)+1 FROM comm_like
+	</selectKey>
+	INSERT INTO comm_like (
+	    comm_like_no,
+	    comm_no,
+	    mem_id,
+	    comm_like_yn
+	) VALUES ( #{commLikeNo},
+	           #{commNo},
+	           #{memId},
+	           1 )
+	</insert>
+	
+	 <insert id="insertLike" parameterType="kr.or.ddit.vo.CommLikeVO">
+	    INSERT INTO comm_like (comm_like_no, comm_no, mem_id, comm_like_yn)
+	    VALUES (
+	        (SELECT NVL(MAX(comm_like_no), 0) + 1 FROM comm_like),
+	        #{commNo},
+	        #{memId},
+	        1
+	    )
+	</insert>
+	 
+	
+	게시글 좋아요 취소 
+	<update id="cancelLike" parameterType="int">
+	    DELETE FROM comm_like
+	    WHERE comm_like_no = #{commLikeNo}
+	</update>
+	
+	
+ -->
+<!-- 좋아요 수  count -->
+	<select id="getLikeCount" parameterType="int" resultType="int">
+    SELECT COUNT(*)
+    FROM comm_like
+    WHERE comm_no = #{commNo}
+      AND comm_like_yn = 1
+</select>
+<!-- 좋아요 체크 -->
+<select id="getCommLikeChk" parameterType="kr.or.ddit.vo.CommLikeVO" resultType="kr.or.ddit.vo.CommLikeVO">
+    SELECT *
+    FROM comm_like
+    WHERE comm_no = #{commNo}
+      AND mem_id = #{memId}
+</select>
+
+	<!-- //해당 글 번호에 해당맴버가 좋아요를 누룬것을 저장 -->
+	<insert id="commLikeIns" parameterType="kr.or.ddit.vo.CommLikeVO">
+	<selectKey resultType="int" order="BEFORE"
+				keyProperty="commLikeNo">
+				SELECT NVL(MAX(COMM_LIKE_NO),0)+1 FROM COMM_LIKE
+			</selectKey>
+	INSERT INTO COMM_LIKE (
+	    COMM_LIKE_NO
+	    , COMM_NO
+	    , MEM_ID
+	    , COMM_LIKE_YN
+	) VALUES ( #{commLikeNo}
+	         , #{commNo}
+	         , #{memId}
+	         , 1 )
+	
+	</insert>
+	
+<!--//해당 글 번호에 해당맴버가 좋아요를 누룬것을 변경 -->
+<update id="commLikeChn">
+   UPDATE COMM_LIKE
+    SET COMM_LIKE_YN = 
+        CASE 
+            WHEN COMM_LIKE_YN = 0 THEN 1
+            ELSE 0
+        END
+    WHERE COMM_NO = #{commNo}
+      AND MEM_ID = #{memId}
+</update>
+
+
+
+<!-- 댓글 count -->
+<select id="getCommentCount" parameterType="int" resultType="int">
+select count(*)
+from comment_repy
+where comm_no=#{commNo}
+</select>
+
+<!-- 마이페이지 사진 가져오기 -->
+<select id="getFileGroupNo" parameterType="map" resultType="kr.or.ddit.vo.CommunityVO">
+    SELECT 
+        CR.COMM_REG_NICK,
+        CR.FILE_GROUP_NO,
+        FD.FILE_SAVE_LOCATE
+    FROM COMMUNITY_REGDATA CR
+    LEFT JOIN FILE_DETAIL FD 
+        ON CR.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    WHERE CR.MEM_ID = #{memId}
+      AND CR.GROUP_NO = #{groupNo}
+</select>
+<!-- 마이페이지 게시글 리스트 -->
+<select id="profileList" parameterType="map" resultMap="postMap">
+    SELECT 
+        c.comm_no,
+        c.group_no,
+        c.mem_id,
+        c.comm_cn,
+        c.comm_write_date,
+        c.comm_updt_date,
+        c.comm_view,
+        c.comm_status,
+        c.memship_state,
+        c.file_group_no AS C_FILE_GROUP_NO,
+        cr.COMM_REG_NO,
+        cr.GROUP_NO AS GROUP_NO_CR,
+        cr.COMM_REG_JOIN,
+        cr.COMM_REG_NICK,
+        cr.MEM_ID AS MEM_ID_CR,
+        cr.file_group_no AS CR_FILE_GROUP_NO,
+        FG.FILE_REGDATE,
+        FD.FILE_SN,
+        FD.FILE_ORIGINAL_NAME,
+        FD.FILE_SAVE_NAME,
+        FD.FILE_SAVE_LOCATE,
+        FD.FILE_SIZE,
+        FD.FILE_EXT,
+        FD.FILE_MIME,
+        FD.FILE_FANCYSIZE,
+        FD.FILE_SAVE_DATE,
+        FD.FILE_DOWNCOUNT,
+        fd_2.FILE_SAVE_LOCATE AS pro_save_locate
+    FROM 
+        community c 
+    LEFT OUTER JOIN 
+        community_regdata cr ON (c.MEM_ID = cr.MEM_ID)
+    LEFT OUTER JOIN 
+        FILE_GROUP FG ON (c.FILE_GROUP_NO = FG.FILE_GROUP_NO)
+    LEFT OUTER JOIN 
+        FILE_DETAIL FD ON (FG.FILE_GROUP_NO = FD.FILE_GROUP_NO)
+    LEFT OUTER JOIN 
+        FILE_DETAIL FD_2 ON (cr.file_group_no = FD_2.FILE_GROUP_NO)
+    WHERE 
+        c.group_no = #{groupNo}
+        AND cr.group_no = #{groupNo}
+        AND c.MEM_ID = #{memId}  <!-- 추가된 조건 -->
+    ORDER BY 
+        c.comm_write_date DESC
+</select>
+
+<insert id="insertReport">
+<selectKey resultType="int" order="BEFORE" keyProperty="commReportNo">
+			SELECT NVL(MAX(comm_report_no),0)+1 FROM COMM_REPORT
+		</selectKey>
+INSERT INTO COMM_REPORT (
+    comm_report_no
+    , comm_no
+    , mem_id
+    , comm_report_cn
+    , comm_report_yn
+    , comm_report_dt
+    , comm_report_ac
+) VALUES ( #{commReportNo}
+		 , #{commNo}
+         , #{memId}
+         , #{commReportCn}
+         , #{commReportYn}
+         , SYSDATE
+         , #{commReportAc}
+         )
+</insert>
+
+<select id="isReported" parameterType="map" resultType="int">
+    SELECT COUNT(*)
+    FROM comm_report
+    WHERE comm_no = #{commNo}
+      AND mem_id = #{memId}
+</select>
+
+<select id="getMembershipList" parameterType="int" resultType="map">
+    SELECT
+        memship_no AS memshipNo,
+        group_no AS groupNo,
+        memship_nm AS memshipNm,
+        memship_amount AS memshipAmount
+    FROM
+        memship
+    WHERE
+        group_no = #{groupNo}
+</select>
+
+<select id="getCommentsWithMembership" parameterType="int" resultType="kr.or.ddit.vo.CommentVO">
+    SELECT 
+        cm.cmmt_no AS cmmtNo,
+        cm.cmmt_cn AS cmmtCn,
+        cm.mem_id AS memId,
+        CASE 
+            WHEN COUNT(md.memship_yn) > 0 THEN 1
+            ELSE 0
+        END AS isMembership
+    FROM COMMENT_REPY cm
+    LEFT JOIN community_regdata cr ON cm.mem_id = cr.mem_id
+    LEFT JOIN memship_data md ON cr.comm_reg_no = md.comm_reg_no
+                               AND (md.memship_yn = 1 OR md.memship_end_date > SYSDATE)
+    WHERE cm.comm_no = #{commNo}
+    GROUP BY cm.cmmt_no, cm.cmmt_cn, cm.mem_id
+</select>
+
+	<!-- 
+	(SELECT DISTINCT 1 FROM COMM_LIKE G WHERE G.COMM_NO = c.comm_no AND G.MEM_ID = #{memId}) IS_LIKED,
+           (SELECT COUNT(*) FROM COMM_LIKE CL WHERE CL.COMM_NO = c.comm_no) LIKE_COUNT,
+	 -->
+	<resultMap type="kr.or.ddit.vo.CommunityVO" id="postMap">
+		<result property="commNo" column="COMM_NO"/>
+		<result property="groupNo" column="GROUP_NO"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="commCn" column="COMM_CN"/>
+		<result property="commWriteDate" column="COMM_WRITE_DATE"/>
+		<result property="commUpdtDate" column="COMM_UPDT_DATE"/>
+		<result property="commView" column="COMM_VIEW"/>
+		<result property="commStatus" column="COMM_STATUS"/>
+		<result property="memshipState" column="MEMSHIP_STATE"/>
+		<result property="isLiked" column="IS_LIKED"/>
+		<result property="likeCount" column="LIKE_COUNT"/>
+		<result property="cmmtNo" column="CMMT_NO"/>
+		<result property="cmmtCn" column="CMMT_CN"/>
+		<result property="cmmtDate" column="CMMT_DATE"/>
+
+  		<result property="fileGroupNoC" column="C_FILE_GROUP_NO"/>
+    	<result property="fileGroupNoCr" column="CR_FILE_GROUP_NO"/>
+    	<result property="fileGroupNoG" column="G_FILE_GROUP_NO"/>
+		
+		<result property="commRegJoin" column="COMM_REG_JOIN"/>
+		<result property="commRegNick" column="COMM_REG_NICK"/>
+		<result property="memIdCr" column="MEM_ID_CR"/>
+		<result property="groupNoCr" column="GROUP_NO_CR"/>
+		<result property="proSaveLocate" column="PRO_SAVE_LOCATE"/>
+		<result property="groupSaveLocate" column="GROUP_SAVE_LOCATE"/>
+		<result property="commReportYn" column="COMM_REPORT_YN"/>
+		
+		<association property="fileGroupVO" resultMap="fileGroupMap"></association>
+	</resultMap>
+	
+	
+	<resultMap type="kr.or.ddit.vo.GroupsVO" id="groupMap">
+		<result property="groupNo" column="GROUP_NO"/>
+		<result property="groupName" column="GROUP_NAME"/>
+		<result property="groupBirth" column="GROUP_BIRTH"/>
+		<result property="groupDspgn" column="GROUP_DSPGN"/>
+		<result property="groupIntrcn" column="GROUP_INTRCN"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		 <result property="fileSaveLocate" column="pro_save_locate"/> <!-- 추가 -->
+		 <result property="communityCount" column="COMMUNITY_COUNT"/> <!-- 추가(가입회원수) -->
+		<result property="groupBirthInputter" column="GROUP_BIRTH_INPUTTER"/>
+		<result property="groupDspgnInputter" column="GROUP_DSPGN_INPUTTER"/>
+		<association property="fileGroupVO" resultMap="fileGroupMap"></association>
+	</resultMap>
+	
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="fileRegdate" column="FILE_REGDATE"/>
+		<collection property="fileDetailVOList" resultMap="fileDetailMap"></collection>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.FileDetailVO" id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME"/>
+		<result property="fileSaveName" column="FILE_SAVE_NAME"/>
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE"/>
+		<result property="fileSize" column="FILE_SIZE"/>
+		<result property="fileExt" column="FILE_EXT"/>
+		<result property="fileMime" column="FILE_MIME"/>
+		<result property="fileFancysize" column="FILE_FANCYSIZE"/>
+		<result property="fileSaveDate" column="FILE_SAVE_DATE"/>
+		<result property="fileDowncount" column="FILE_DOWNCOUNT"/>
+	</resultMap>
+	
+	<!-- ComReg : FILE_GROUP = 1 : 1 -->
+	<resultMap type="kr.or.ddit.vo.ComRegVO" id="comRegMap">
+		<result property="commRegNo" column="COMM_REG_NO"/>
+		<result property="groupNo" column="GROUP_NO"/>
+		<result property="commRegJoin" column="COMM_REG_JOIN"/>
+		<result property="commRegNick" column="COMM_REG_NICK"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<association property="fileGroupVO" resultMap="fileGroupMap"></association>
+	</resultMap>
+
+<resultMap id="reportYnMap" type="hashmap">
+    <result property="commNo" column="COMM_NO"/>
+    <result property="commReportYn" column="COMM_REPORT_YN"/>
+</resultMap>
+<!-- 	<resultMap type="kr.or.ddit.vo.AuthVO" id="authMap"> -->
+<!-- 		<result column="mem_id"    property="memId" /> -->
+<!-- 		<result column="auth_name" property="authName" /> -->
+<!-- 	</resultMap> -->
+	
+	
+</mapper>

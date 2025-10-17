@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.UsersMapper">
+
+	<!-- email로 사용자 정보를 가져옴 public UsersVO findByEmail(String email) -->
+	<select id="findByEmail" parameterType="String"
+		resultType="kr.or.ddit.vo.UsersVO">
+		SELECT ID, EMAIL, PASSWORD, CREATED_AT, UPDATED_AT
+		FROM
+		USERS
+		WHERE EMAIL = #{email}
+	</select>
+
+	<!-- MemberVO(memId=u001, memName=성원태2, memPw=암호화된 java, memEnable=false
+		, memRegdate=null, uploadFiles=파일객체들 public int save(MemberVO memberVO) -->
+	<insert id="save" parameterType="kr.or.ddit.vo.MemberVO">
+		INSERT INTO member (
+		MEM_ID,
+		DEPART_NO, MEM_PW, MEM_ENABLE, MEM_NAME, MEM_GENDER, MEM_REG_DATE,
+		MEM_EMAIL, FILE_GROUP_NO, MEM_TEL, ADD_NO,MEM_BIR
+		) VALUES (
+		#{memId}, null,#{
+		memPw}, 'y', #{memName}, #{memGender}, sysdate, #{memEmail},
+		null,
+		#{memTel}, (SELECT NVL(MAX(ADD_NO),0) + 1 FROM MEMBER),#{memBir2}
+		)
+	</insert>
+	<!--권한등록 public int saveAuths(MemberVO memberVO) MemberVO(memId=u001, memName=성원태2,
+		memPw=java, memEnable=false , memRegdate=null,fileGroupNo=0, uploadFiles=파일객체들 -->
+	<insert id="saveAuths" parameterType="MemberVO">
+		INSERT INTO AUTH(MEM_ID,
+		AUTH_NAME)
+		VALUES(#{memId},'ROLE_USER')
+	</insert>
+	<!-- 아이디 찾기 -->
+	<select id="findId" parameterType="kr.or.ddit.vo.MemberVO"
+		resultType="kr.or.ddit.vo.MemberVO">
+		SELECT
+		MEM_ID
+		FROM
+		MEMBER
+		WHERE
+		MEM_NAME=#{memName}
+		AND
+		MEM_EMAIL=#{memEmail}
+	</select>
+
+	<select id="idChk" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM member
+		WHERE mem_id = #{memId}
+	</select>
+
+	<!-- 비밀번호 찾기 -->
+	<select id="findPw" parameterType="kr.or.ddit.vo.MemberVO"
+		resultType="kr.or.ddit.vo.MemberVO">
+		SELECT
+		MEM_ID
+		FROM
+		MEMBER
+		WHERE
+		MEM_ID=#{memId}
+		AND
+		MEM_EMAIL=#{memEmail}
+	</select>
+
+	<!-- 비밀번호 변경 -->
+	<insert id="changePw" parameterType="kr.or.ddit.vo.MemberVO">
+
+		UPDATE MEMBER
+		SET
+		MEM_PW = #{memPw}
+		WHERE
+		MEM_ID = #{memId}
+	</insert>
+
+	<select id="crrncySumAjax" parameterType="kr.or.ddit.vo.MemberVO" resultType="Integer">
+	SELECT
+    sum(vrtual_crrncy_use)
+FROM
+    vrtual_crrncy
+    where mem_id=#{memId}
+
+	</select>
+	<!--	//비교할 정보 가져오기
+	public MemberVO getMember(String memId);
+	  -->
+<select id="getMember" parameterType="kr.or.ddit.vo.MemberVO" resultType="kr.or.ddit.vo.MemberVO">
+
+SELECT
+    MEM_ID
+  , MEM_PW
+FROM
+    MEMBER
+    WHERE MEM_ID=#{memId}
+</select>
+</mapper>
+
+
+

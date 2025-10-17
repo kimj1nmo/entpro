@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.appr.ApprMapper">
+
+	<resultMap type="kr.or.ddit.vo.ApprDocVO" id="apprDocMap">
+	    <id property="atrzDocNo" column="ATRZ_DOC_NO" />
+	    
+		<result property="rnum" column="RNUM"/>
+		<result property="atrzDocNo" column="ATRZ_DOC_NO"/>
+		<result property="atrzFormNo" column="ATRZ_FORM_NO"/>
+		<result property="atrzDocNm" column="ATRZ_DOC_NM"/>
+		<result property="atrzDocCn" column="ATRZ_DOC_CN"/>
+		<result property="atrzDocState" column="ATRZ_DOC_STATE"/>
+		<result property="atrzDocDt" column="ATRZ_DOC_DT"/>
+		<result property="atrzStep" column="ATRZ_STEP"/>
+		<result property="atrzWriter" column="ATRZ_WRITER"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="departName" column="DEPART_NAME"/>
+		<result property="atrzPreserved" column="ATRZ_PRESERVED"/>
+		<result property="atrzSecurity" column="ATRZ_SECURITY"/>
+		<association property="fileGroupVO" resultMap="fileGroupMap"  /> 
+		<association property="memberVO" resultMap="memberMap" /> 
+		<association property="apprLineVO" resultMap="lineMap" /> 
+		<association property="apprManVO" resultMap="manMap" /> 
+	</resultMap>
+	<resultMap type="kr.or.ddit.vo.ApprLineVO" id = "lineMap">
+		<result property="atrzLineNo" column="ATRZ_LINE_NO"/>
+		<result property="atrzLineNm" column="ATRZ_LINE_NM"/>
+		<result property="regDate" column="REG_DATE"/>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.ApprManVO" id="manMap">
+		<result property="atrzManNo" column="ATRZ_MAN_NO"/>
+		<result property="atrzDocNo" column="ATRZ_DOC_NO"/>
+		<result property="atrzLineNo" column="ATRZ_LINE_NO"/>
+		<result property="atrzManSeq" column="ATRZ_MAN_SEQ"/>
+		<result property="atrzManId" column="ATRZ_MAN_ID"/>
+		<result property="atrzManDate" column="ATRZ_MAN_DATE"/>
+		<result property="atrzManResn" column="ATRZ_MAN_RESN"/>
+		<result property="atrzManCode" column="ATRZ_MAN_CODE"/>
+		<result property="atrzManType" column="ATRZ_MAN_TYPE"/>
+	</resultMap>
+		
+	<resultMap type="kr.or.ddit.vo.MemberVO" id="memberMap">
+		<result property="memId" column="MEM_ID"/>
+		<result property="departNo" column="DEPART_NO"/>
+		<result property="memPw" column="MEM_PW"/>
+		<result property="memEnable" column="MEM_ENABLE"/>
+		<result property="memName" column="MEM_NAME"/>
+		<result property="memGender" column="MEM_GENDER"/>
+		<result property="memRegDate" column="MEM_REG_DATE"/>
+		<result property="memEmail" column="MEM_EMAIL"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="memTel" column="MEM_TEL"/>
+		<result property="posNo" column="POS_NO"/>
+		<result property="addNo" column="ADD_NO"/>
+		<result property="memBir" column="MEM_BIR"/>
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.ApprAttrVO" id="apprAttrMap">
+		<result property="atrzAttrNo" column="ATRZ_ATTR_NO"/>
+		<result property="atrzDocNo" column="ATRZ_DOC_NO"/>
+		<result property="atrzAttrName" column="ATRZ_ATTR_NAME"/>
+		<result property="atrzAttrType" column="ATRZ_ATTR_TYPE"/>
+		<result property="atrzAttrValue" column="ATRZ_ATTR_VALUE"/>
+		<result property="atrzAttrOrder" column="ATRZ_ATTR_ORDER"/>
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap"> <!-- 한 단계 들어갔더니 fileGroupVO가 나왔다. -->
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="fileRegdate" column="FILE_REGDATE"/>
+		<collection property="fileDetailVOList" resultMap="fileDetailMap"></collection> <!-- 리스트니까 컬렉션?  -->
+	</resultMap>
+
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO" id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME"/>
+		<result property="fileSaveName" column="FILE_SAVE_NAME"/>
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE"/>
+		<result property="fileSize" column="FILE_SIZE"/>
+		<result property="fileExt" column="FILE_EXT"/>
+		<result property="fileMime" column="FILE_MIME"/>
+		<result property="fileFancysize" column="FILE_FANCYSIZE"/>
+		<result property="fileSaveDate" column="FILE_SAVE_DATE"/>
+		<result property="fileDowncount" column="FILE_DOWNCOUNT"/>
+	</resultMap>
+
+
+	<select id="list" parameterType="int" resultMap="apprDocMap">
+		SELECT
+		    T.RNUM
+		  , T.atrz_doc_no
+		  , T.atrz_form_no
+		  , T.atrz_doc_nm
+		  , T.atrz_doc_cn
+		  , T.atrz_doc_state
+		  , T.atrz_doc_dt
+		  , T.atrz_step
+		  , T.atrz_writer
+		 
+		FROM
+		    (
+		    SELECT ROW_NUMBER() OVER(ORDER BY ATRZ_DOC_NO) RNUM
+			  , a.ATRZ_DOC_NO
+			  , a.atrz_form_no
+			  , a.atrz_doc_nm
+			  , a.atrz_doc_cn
+			  , a.atrz_doc_state
+			  , a.atrz_doc_dt
+			  , a.atrz_step
+			  , a.atrz_writer
+		    FROM atrz_doc a, member m
+		    WHERE
+		    a.atrz_writer = m.mem_id
+		    ) T
+		    where T.RNUM BETWEEN (#{currentPage}*10)-9 AND (#{currentPage}*10)
+	</select>
+	
+	
+	
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*) FROM ATRZ_DOC
+	</select>
+	
+	<select id="detail" parameterType="int" resultMap="apprDocMap">
+		SELECT
+		    a.atrz_doc_no
+		  , a.atrz_form_no
+		  , a.atrz_doc_nm
+		  , a.atrz_doc_cn
+		  , a.atrz_doc_state
+		  , a.atrz_doc_dt
+		  , a.atrz_step
+		  , a.atrz_writer
+		  , a.file_group_no
+		  , a.atrz_preserved
+		  , a.atrz_security
+		  , D.DEPART_NAME
+		  , m.mem_id
+		  , m.mem_bir
+		  , m.mem_reg_date
+		  , m.mem_name
+		  , m.add_no
+		  , ADDR.ADD_1
+		  , ADDR.ADD_2
+		  , ADDR.ADD_ZIP
+		FROM
+		    atrz_doc a LEFT OUTER JOIN FILE_GROUP FG ON(a.FILE_GROUP_NO = FG.FILE_GROUP_NO)
+		               LEFT OUTER JOIN FILE_DETAIL FD ON(a.FILE_GROUP_NO = FD.FILE_GROUP_NO)
+		               LEFT OUTER JOIN MEMBER M ON (a.ATRZ_WRITER = M.MEM_ID)
+		               LEFT OUTER JOIN DEPARTMENT D ON (M.DEPART_NO = D.DEPART_NO)
+		               LEFT OUTER JOIN ADDRESS ADDR ON (M.MEM_ID = ADDR.MEM_ID)
+		WHERE
+		   a.atrz_doc_no = #{atrz_doc_no}
+	</select>
+
+	
+	<insert id="saveApprDocument" parameterType="ApprDocVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="atrzDocNo">
+			SELECT NVL(MAX(ATRZ_DOC_NO), 0)+1 FROM ATRZ_DOC
+		</selectKey>
+		INSERT INTO atrz_doc (
+		    atrz_doc_no
+		    , atrz_form_no
+		    , atrz_doc_nm
+		    , atrz_doc_cn
+		    , atrz_doc_dt
+		    , atrz_writer
+	        , atrz_preserved
+    		, atrz_security
+		    <if test="fileGroupNo!=null and fileGroupNo != ''">
+			, FILE_GROUP_NO
+			</if>
+		    , atrz_step
+		    , atrz_doc_state
+		   
+		) VALUES ( #{atrzDocNo}
+		         , #{atrzFormNo}
+		         , #{atrzDocNm}
+		         , #{atrzDocCn}
+		         , SYSDATE
+		         , #{atrzWriter}
+		         , #{atrzPreserved}
+		         , #{atrzSecurity}
+		         <if test="fileGroupNo!=null and fileGroupNo != ''">
+				 , #{fileGroupNo}
+				</if>
+				, 2
+				, 0
+		         )
+				
+	
+	</insert>
+
+
+	<insert id="saveApprAttr" parameterType="ApprDocVO">
+	<selectKey resultType="int" order="BEFORE" keyProperty="atrzDocNo">
+		SELECT NVL(MAX(ATRZ_ATTR_NO), 0)+1 FROM ATRZ_FORM_ATTRIBUTES
+	</selectKey>
+		INSERT INTO atrz_form_attributes (
+		    atrz_attr_no
+		    , atrz_doc_no
+		    , atrz_attr_name
+		    , atrz_attr_type
+		    , atrz_attr_value
+		    , atrz_attr_order
+		) VALUES ( 
+				   #{atrzAttrNo}
+		         , #{atrzDocNo}
+		         , #{atrzAttrName}
+		         , #{atrzAttrType}
+		         , #{atrzAttrValue}
+		         , #{atrzAttrOrder} )
+	</insert>
+
+	<select id="getTreeData" parameterType="int">
+		select 
+		  	M.MEM_ID
+		  , M.MEM_NAME
+		  , D.DEPART_NO
+		  , D.DEPART_NAME
+		  , D.DEPART_PARENT
+		  , m.pos_no
+		  , P.POS_NAME
+		
+		FROM
+		    MEMBER M  LEFT OUTER JOIN 
+		                DEPARTMENT D 
+		                    ON (M.DEPART_NO = D.DEPART_NO)
+		              LEFT OUTER JOIN 
+		                POSITION P 
+		                    ON (M.POS_NO =  P.POS_NO)
+		              LEFT OUTER JOIN 
+		                DEPARTMENT DP 
+		                    ON (D.DEPART_PARENT = DP.DEPART_NO)
+		    WHERE P.POS_NO IS NOT NULL
+
+	</select>
+
+	<select id="getUserInfo" parameterType="String" resultType="kr.or.ddit.vo.ApprManVO">
+		SELECT
+		     m.mem_name
+		    , p.pos_name
+		    , d.depart_name
+		FROM 
+		MEMBER M LEFT OUTER JOIN DEPARTMENT D ON (M.DEPART_NO = D.DEPART_NO)
+		         LEFT OUTER JOIN POSITION P ON (M.POS_NO = P.POS_NO)
+		         LEFT OUTER JOIN DEPARTMENT DP ON (D.DEPART_PARENT = DP.DEPART_NO)
+		    WHERE 1=1
+		    AND M.MEM_ID = #{memId}
+	</select>
+	
+	<insert id="saveApprLine" parameterType="ApprLineVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="atrzLineNo">
+			SELECT ATRZ_LINE_NO.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO atrz_line (
+		      atrz_line_no
+		    , atrz_line_nm
+		    , reg_date
+			) VALUES ( #{atrzLineNo}
+			         , #{atrzLineNm}
+			         , sysdate )
+				
+		
+		
+	</insert>
+	
+	<insert id="saveApprMan" parameterType="ApprManVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="atrzManNo">
+			SELECT NVL(MAX(ATRZ_MAN_NO), 0)+1 FROM ATRZ_MAN
+		</selectKey>
+		
+		INSERT INTO atrz_man (
+		    atrz_man_no
+		    , atrz_doc_no
+		    , atrz_line_no
+		    , atrz_man_seq
+		    , atrz_man_id
+		    , atrz_man_date
+		    , atrz_man_resn
+		    , atrz_man_code
+		    , atrz_man_type
+		   
+		    
+		) VALUES (
+		    #{atrzManNo}
+		    , #{atrzDocNo}
+		    , #{atrzLineNo}
+		    , #{atrzManSeq}
+		    , #{atrzManId}
+		    , SYSDATE
+		    , NULL
+		    , CASE 
+		        WHEN #{atrzManSeq} = 1 THEN 1 -- 1 승인 2 반려 3 대기
+		        ELSE 3 -- 나머지는 대기(PENDING)
+		    END
+		    , #{atrzManType}
+		)
+	</insert>
+	
+
+</mapper>

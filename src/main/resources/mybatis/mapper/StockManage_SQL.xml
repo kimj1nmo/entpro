@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.companypage.stockmanage.StockManageMapper">
+
+
+
+	<resultMap type="kr.or.ddit.vo.WrhousngVO" id="wrhousngMap">
+
+		<result property="wrhousngDate" column="WRHOUSNG_DATE" />
+		<result property="gdsNo" column="GDS_NO" />
+		<result property="gdsNm" column="GDS_NM" />
+		<result property="wrhousngPrice" column="WRHOUSNG_PRICE" />
+		<result property="wrhousngQy" column="WRHOUSNG_QY" />
+		<result property="wrhousngCode" column="WRHOUSNG_CODE" />
+		<result property="memId" column="MEM_ID" />
+		<result property="memName" column="MEM_NAME" />
+		<result property="wrhousngDt" column="WRHOUSNG_DT" />
+		<result property="wrhousngNo" column="WRHOUSNG_NO" />
+		<result property="wrhousngSupplier" column="WRHOUSNG_SUPPLIER" />
+		<!-- <result property="fileGroupNo" column="FILE_GROUP_NO" /> -->
+		<!-- <association property="fileGroupVO" -->
+		<!-- resultMap="fileGroupMap"> -->
+		<!-- </association> -->
+	</resultMap>
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+	<select id="getYearsAjax" resultType="hashMap">
+
+		SELECT DISTINCT
+		EXTRACT(YEAR FROM ORDER_DATE) AS year
+		FROM ORDER_INFO
+		ORDER BY year
+
+	</select>
+
+
+	<!-- 총 페이지 수 -->
+
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM WRHOUSNG W
+		LEFT JOIN GOODS G ON W.GDS_NO = G.GDS_NO
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+
+			AND (
+			G.GDS_NM LIKE '%' || #{keyword} || '%'
+			OR G.CTGRY_NO
+			LIKE '%' || #{keyword} || '%'
+			OR W.WRHOUSNG_SUPPLIER LIKE '%' ||
+			#{keyword} || '%'
+			)
+		</if>
+	</select>
+
+
+
+	<select id="stockListSort" parameterType="hashMap"
+		resultMap="wrhousngMap">
+
+		SELECT
+		T.RNUM
+
+		,T.WRHOUSNG_DATE, T.GDS_NO, T.WRHOUSNG_PRICE,
+		T.WRHOUSNG_QY, T.WRHOUSNG_CODE
+		, T.MEM_ID, T.WRHOUSNG_NO
+		,T.WRHOUSNG_SUPPLIER
+		, T.CTGRY_NO, T.GDS_NM, T.GDS_PRICE, T.GDS_DC,
+		T.GDS_DATE, T.GROUP_NO
+		, T.MEM_NAME
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		ORDER
+		BY W.WRHOUSNG_NO
+		<if test="mode == 0">
+			desc
+		</if>
+		<if test="mode == 1">
+			desc
+		</if>
+
+		) AS RNUM
+		,W.WRHOUSNG_DATE, W.GDS_NO, W.WRHOUSNG_PRICE, W.WRHOUSNG_QY,
+		W.WRHOUSNG_CODE
+		, W.MEM_ID, W.WRHOUSNG_NO, W.WRHOUSNG_SUPPLIER
+		,
+		G.CTGRY_NO, G.GDS_NM, G.GDS_PRICE, G.GDS_DC, G.GDS_DATE, G.GROUP_NO
+		,M.MEM_NAME
+		FROM WRHOUSNG W
+		LEFT JOIN GOODS G ON W.GDS_NO = G.GDS_NO
+		LEFT JOIN MEMBER M ON M.MEM_ID = W.MEM_ID
+
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+
+			AND (
+			G.GDS_NM LIKE '%' || #{keyword} || '%'
+			OR G.CTGRY_NO
+			LIKE '%' || #{keyword} || '%'
+			OR W.WRHOUSNG_SUPPLIER LIKE '%' ||
+			#{keyword} || '%'
+			)
+		</if>
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+	</select>
+
+	<select id="getJaegoTotal" parameterType="hashMap" resultType="int">
+    SELECT COUNT(*)
+    FROM (
+        SELECT DISTINCT G.GDS_NO, G.GDS_NM,
+            COALESCE(SUM(W.WRHOUSNG_QY), 0) AS WRHOUSNG_SUM,
+            COALESCE(SUM(OL.ORDER_LIST_QY), 0) AS ORDER_SUM,
+            COALESCE(SUM(W.WRHOUSNG_QY), 0) - COALESCE(SUM(OL.ORDER_LIST_QY), 0) AS remain
+        FROM GOODS G
+        LEFT JOIN WRHOUSNG W ON G.GDS_NO = W.GDS_NO
+        LEFT JOIN ORDER_LIST OL ON OL.GDS_NO = W.GDS_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                G.GDS_NM LIKE '%' || #{keyword} || '%'
+                OR G.CTGRY_NO = (SELECT X.GDS_CTGRY_NO FROM GDS_CTGRY X WHERE X.GDS_CTGRY_NM LIKE '%' || #{keyword} || '%')
+            )
+        </if>
+        GROUP BY G.GDS_NO, G.GDS_NM
+        <if test="check == 1">
+            <![CDATA[
+            HAVING COALESCE(SUM(W.WRHOUSNG_QY), 0) - COALESCE(SUM(OL.ORDER_LIST_QY), 0) <= 10
+            ]]>
+        </if>
+        <if test="check == 2">
+            <![CDATA[
+            HAVING COALESCE(SUM(W.WRHOUSNG_QY), 0) - COALESCE(SUM(OL.ORDER_LIST_QY), 0) <= 0
+            ]]>
+        </if>
+    ) T
+
+</select>
+
+
+
+	<select id="jaegoListSort" parameterType="hashMap" resultType="kr.or.ddit.vo.GoodsVO">
+		    	SELECT
+		T.RNUM
+
+		,T.GDS_NO, T.GDS_NM, T.WRHOUSNG_SUM,
+		T.ORDER_SUM, T.remain
+
+		FROM
+		    (SELECT
+		    ROW_NUMBER() OVER (
+		ORDER
+		BY g.GDS_NO
+			desc
+
+		) AS RNUM
+		        ,G.GDS_NO,
+		        G.GDS_NM,
+		        COALESCE(W.WRHOUSNG_SUM, 0) AS WRHOUSNG_SUM,
+		        COALESCE(OL.ORDER_SUM, 0) AS ORDER_SUM,
+		        COALESCE(W.WRHOUSNG_SUM, 0) - COALESCE(OL.ORDER_SUM, 0) AS remain
+		    FROM GOODS G
+		    LEFT JOIN (
+		        SELECT GDS_NO, SUM(WRHOUSNG_QY) AS WRHOUSNG_SUM
+		        FROM (
+		            SELECT GDS_NO, WRHOUSNG_NO, MAX(WRHOUSNG_QY) AS WRHOUSNG_QY
+		            FROM WRHOUSNG
+		            GROUP BY GDS_NO, WRHOUSNG_NO
+		        ) W
+		        GROUP BY GDS_NO
+		    ) W ON G.GDS_NO = W.GDS_NO
+		    LEFT JOIN (
+		        SELECT GDS_NO, SUM(ORDER_LIST_QY) AS ORDER_SUM
+		        FROM ORDER_LIST
+		        GROUP BY GDS_NO
+		    ) OL ON G.GDS_NO = OL.GDS_NO
+		    WHERE 1 = 1
+		    <if test="keyword != null and keyword != ''">
+		        AND (
+		            G.GDS_NM LIKE '%' || #{keyword} || '%'
+		            OR G.CTGRY_NO LIKE '%' || #{keyword} || '%'
+		        )
+		    </if>
+		    GROUP BY
+		        G.GDS_NO, G.GDS_NM, W.WRHOUSNG_SUM, OL.ORDER_SUM
+		    <if test="check == 1">
+		        <![CDATA[
+		        HAVING COALESCE(W.WRHOUSNG_SUM, 0) - COALESCE(OL.ORDER_SUM, 0) <= 10
+		        ]]>
+		    </if>
+		    <if test="check == 2">
+		        <![CDATA[
+		        HAVING COALESCE(W.WRHOUSNG_SUM, 0) - COALESCE(OL.ORDER_SUM, 0) <= 0
+		        ]]>
+		    </if>
+		    ORDER BY G.GDS_NO DESC
+		    )T
+		    		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+</select>
+
+
+	<!-- // 총갯수 가져오기 public int getProductTotal(); //재고 10개 이하 상품 총 갯수가져오기 public
+		int getUnderTen(); //품절 상품 총 갯수 가져오기 public int getSoldOut(); -->
+	<select id="getProductTotal" resultType="int">
+		SELECT
+		COUNT(*)
+		FROM
+		GOODS
+	</select>
+
+<select id="getUnderTen" resultType="int">
+  SELECT
+        COUNT(*) AS count_remaining_zero_or_less
+    FROM (
+        SELECT
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) AS total_wrhouse_qty,
+            COALESCE(SUM(OL.ORDER_SUM), 0) AS 주문량,
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) - COALESCE(SUM(OL.ORDER_SUM), 0) AS remain
+        FROM
+            GOODS G
+        LEFT JOIN (
+		        SELECT GDS_NO, SUM(WRHOUSNG_QY) AS WRHOUSNG_SUM
+		        FROM (
+		            SELECT GDS_NO, WRHOUSNG_NO, MAX(WRHOUSNG_QY) AS WRHOUSNG_QY
+		            FROM WRHOUSNG
+		            GROUP BY GDS_NO, WRHOUSNG_NO
+		        ) W
+		        GROUP BY GDS_NO
+		    ) W ON G.GDS_NO = W.GDS_NO
+		    LEFT JOIN (
+		        SELECT GDS_NO, SUM(ORDER_LIST_QY) AS ORDER_SUM
+		        FROM ORDER_LIST
+		        GROUP BY GDS_NO
+		    ) OL ON G.GDS_NO = OL.GDS_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                G.GDS_NM LIKE '%' || #{keyword} || '%'
+                OR G.CTGRY_NO LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+
+        GROUP BY
+            G.GDS_NO, G.GDS_NM
+        HAVING
+             <![CDATA[
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) - COALESCE(SUM(OL.ORDER_SUM), 0) <= 10
+                		]]>
+    ) R
+</select>
+
+
+
+
+
+	<select id="getSoldOut" resultType="int">
+	 SELECT
+        COUNT(*) AS count_remaining_zero_or_less
+    FROM (
+        SELECT
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) AS total_wrhouse_qty,
+            COALESCE(SUM(OL.ORDER_SUM), 0) AS 주문량,
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) - COALESCE(SUM(OL.ORDER_SUM), 0) AS remain
+        FROM
+            GOODS G
+        LEFT JOIN (
+		        SELECT GDS_NO, SUM(WRHOUSNG_QY) AS WRHOUSNG_SUM
+		        FROM (
+		            SELECT GDS_NO, WRHOUSNG_NO, MAX(WRHOUSNG_QY) AS WRHOUSNG_QY
+		            FROM WRHOUSNG
+		            GROUP BY GDS_NO, WRHOUSNG_NO
+		        ) W
+		        GROUP BY GDS_NO
+		    ) W ON G.GDS_NO = W.GDS_NO
+		    LEFT JOIN (
+		        SELECT GDS_NO, SUM(ORDER_LIST_QY) AS ORDER_SUM
+		        FROM ORDER_LIST
+		        GROUP BY GDS_NO
+		    ) OL ON G.GDS_NO = OL.GDS_NO
+        WHERE 1 = 1
+        <if test="keyword != null and keyword != ''">
+            AND (
+                G.GDS_NM LIKE '%' || #{keyword} || '%'
+                OR G.CTGRY_NO LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+
+        GROUP BY
+            G.GDS_NO, G.GDS_NM
+        HAVING
+             <![CDATA[
+            COALESCE(SUM(W.WRHOUSNG_SUM), 0) - COALESCE(SUM(OL.ORDER_SUM), 0) <= 0
+                		]]>
+    ) R
+	</select>
+
+	<!-- //조건에 맞는 상품 총 갯수 public int getGoodsTotal(Map<String, Object> map); -->
+	<select id="getGoodsTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM GOODS G
+		LEFT JOIN GDS_CTGRY GC ON GC.GDS_CTGRY_NO =
+		G.CTGRY_NO
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+			AND (
+			G.GDS_NM LIKE '%' || #{keyword} || '%'
+			OR
+			GC.GDS_CTGRY_NM LIKE '%' || #{keyword} || '%'
+			)
+		</if>
+	</select>
+
+	<!-- //조건에 맞는 상품 총 리승트 public List<GoodsVO> goodsListSortAjax(Map<String,
+		Object> map); -->
+	<select id="goodsListSortAjax" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.GoodsVO">
+		SELECT
+		T.RNUM
+
+		,T.GDS_NO, T.CTGRY_NO, T.GDS_NM, T.GDS_PRICE, T.GDS_DC,
+		T.MEM_ID, T.GDS_DATE, T.GROUP_NO, T.GDSSTATUS
+		, T.GDS_CTGRY_NM,
+		T.GDS_CTGRY_UP_NO, T.GDS_CTGRY_REG_DATE
+		, T.MEM_NAME
+		, T.GROUP_NAME
+
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		ORDER BY G.GDS_NO
+		desc
+
+
+		) AS RNUM
+
+		,G.GDS_NO,
+		G.CTGRY_NO, G.GDS_NM, G.GDS_PRICE, GDS_DC,
+		G.MEM_ID, G.GDS_DATE,
+		G.GROUP_NO, G.GDSSTATUS
+		, GC.GDS_CTGRY_NM, GC.GDS_CTGRY_UP_NO,
+		GC.GDS_CTGRY_REG_DATE
+		,M.MEM_NAME
+		,GR.GROUP_NAME
+		FROM GOODS G
+		LEFT JOIN
+		GDS_CTGRY GC ON GC.GDS_CTGRY_NO =
+		G.CTGRY_NO
+		LEFT JOIN MEMBER M ON
+		M.MEM_ID = G.MEM_ID
+		LEFT JOIN GROUPS GR ON GR.GROUP_NO = G.GROUP_NO
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+
+			AND (
+			G.GDS_NM LIKE '%' || #{keyword} || '%'
+			OR
+			GC.GDS_CTGRY_NM LIKE '%' || #{keyword} || '%'
+
+			)
+		</if>
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+
+	</select>
+
+	<insert id="wrhousngInsert"
+		parameterType="kr.or.ddit.vo.WrhousngVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="wrhousngNo">
+			SELECT NVL(MAX(WRHOUSNG_NO),0)+1 FROM WRHOUSNG
+		</selectKey>
+		INSERT INTO WRHOUSNG (
+		WRHOUSNG_DATE
+		, GDS_NO
+		, WRHOUSNG_PRICE
+		,
+		WRHOUSNG_QY
+		, WRHOUSNG_CODE
+		, MEM_ID
+		, WRHOUSNG_NO
+		, WRHOUSNG_SUPPLIER
+		)
+		VALUES (
+		SYSDATE
+		,#{gdsNo}
+		, #{wrhousngPrice}
+		,#{wrhousngQy}
+		, NULL
+		,
+		#{memId}
+		, #{wrhousngNo}
+		, #{wrhousngSupplier} )
+	</insert>
+
+	<delete id="wrhousngDelete" parameterType="hashMap">
+		DELETE FROM WRHOUSNG
+		WHERE
+		WRHOUSNG_NO = #{wrhousngNo}
+	</delete>
+
+	<select id="makeChartMonth" parameterType="hashMap">
+		WITH MonthlySales AS (
+		SELECT
+		TO_CHAR(oi.order_date, 'YYYY-MM') AS
+		order_month,
+		ol.gds_no,
+		SUM(ol.order_list_qy) AS total_quantity
+		FROM
+		order_list ol
+		JOIN
+		order_info oi
+		ON
+		ol.order_no = oi.order_no
+		WHERE
+		TO_CHAR(oi.order_date, 'YYYY-MM') = #{year} || '-' || LPAD(#{month},
+		2, '0') -- 연도와 월을 동적으로
+		바인딩
+		GROUP BY
+		TO_CHAR(oi.order_date, 'YYYY-MM'),
+		ol.gds_no
+		),
+		TopSales AS (
+		SELECT
+		MS.order_month,
+		MS.gds_no,
+		MS.total_quantity,
+		ROW_NUMBER() OVER (PARTITION BY order_month ORDER BY
+		total_quantity DESC) AS
+		row_num
+		,G.GDS_nM
+		FROM
+		MonthlySales MS
+		JOIN
+		GOODS G
+		ON
+		MS.gds_no = G.gds_no
+		)
+		SELECT
+		order_month,
+		gds_no,
+		total_quantity,
+		GDS_nM
+		FROM
+		TopSales
+		WHERE
+    <![CDATA[
+        row_num <= 5
+               ]]>
+		ORDER BY
+		total_quantity DESC
+	</select>
+
+	<select id="topProductsAjax" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.orderChartVO">
+		SELECT *
+		FROM (
+		SELECT
+		TO_CHAR(oi.order_date, 'YYYY') AS order_year,
+		TO_CHAR(oi.order_date, 'MM') AS order_month,
+		ol.GDS_NO,
+		g.GDS_NM,
+		SUM(ol.ORDER_LIST_QY) AS total_order_quantity
+		FROM
+		order_info oi
+		JOIN
+		ORDER_LIST ol
+		ON ol.ORDER_NO = oi.ORDER_NO
+		JOIN
+		GOODS g
+		ON g.GDS_NO =
+		ol.GDS_NO
+		WHERE
+		TO_CHAR(oi.order_date, 'YYYY') = #{year}
+		AND
+		TO_CHAR(oi.order_date, 'MM') = #{month}
+		GROUP BY
+		TO_CHAR(oi.order_date,
+		'YYYY'),
+		TO_CHAR(oi.order_date, 'MM'),
+		ol.GDS_NO,
+		g.GDS_NM
+		ORDER BY
+		total_order_quantity DESC
+		)
+ <![CDATA[
+WHERE ROWNUM <= 5
+                		]]>
+
+	</select>
+
+	<select id="safetyStockAjax" resultType="kr.or.ddit.vo.GoodsVO">
+		SELECT
+		G.GDS_NO,
+		G.GDS_NM,
+		COALESCE(SUM(W.WRHOUSNG_QY), 0) AS
+		WRHOUSNG_SUM,
+		COALESCE(SUM(OL.ORDER_LIST_QY), 0) AS ORDER_SUM,
+		COALESCE(SUM(W.WRHOUSNG_QY), 0) - COALESCE(SUM(OL.ORDER_LIST_QY), 0)
+		AS remain
+		FROM
+		GOODS G
+		LEFT JOIN
+		WRHOUSNG W ON G.GDS_NO = W.GDS_NO
+		LEFT
+		JOIN
+		ORDER_LIST OL ON G.GDS_NO = OL.GDS_NO
+		WHERE 1 = 1
+		GROUP BY
+		G.GDS_NO,
+		G.GDS_NM
+		HAVING
+ <![CDATA[
+    COALESCE(SUM(W.WRHOUSNG_QY), 0) - COALESCE(SUM(OL.ORDER_LIST_QY), 0) <= 10
+                		]]>
+		ORDER BY
+		remain ASC
+	</select>
+
+
+	<select id="lastMonthProductsAjax" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.orderChartVO">
+		SELECT
+		OL.GDS_NO,
+		MAX(G.GDS_NM) AS GDS_NM, -- 상품명
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = CASE WHEN #{month} = 1 THEN
+		TO_CHAR(#{year} - 1) ELSE TO_CHAR(#{year}) END
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) AS last_month_sales, -- 전월 판매량
+
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = TO_CHAR(#{year})
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = LPAD(TO_CHAR(#{month}), 2, '0')
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) AS current_month_sales, -- 현재 월 판매량
+
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = TO_CHAR(#{year})
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = LPAD(TO_CHAR(#{month}), 2, '0')
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) -
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = CASE WHEN #{month} = 1 THEN
+		TO_CHAR(#{year} - 1) ELSE TO_CHAR(#{year}) END
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) AS sales_difference, -- 판매량 차이
+
+		CASE
+		WHEN COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = CASE WHEN #{month} = 1 THEN
+		TO_CHAR(#{year} - 1) ELSE TO_CHAR(#{year}) END
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) = 0 THEN NULL
+		ELSE
+		(COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = TO_CHAR(#{year})
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = LPAD(TO_CHAR(#{month}), 2, '0')
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0) -
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = CASE WHEN #{month} = 1 THEN
+		TO_CHAR(#{year} - 1) ELSE TO_CHAR(#{year}) END
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 0)) /
+		COALESCE(SUM(CASE
+		WHEN TO_CHAR(OI.ORDER_DATE, 'YYYY') = CASE WHEN #{month} = 1 THEN
+		TO_CHAR(#{year} - 1) ELSE TO_CHAR(#{year}) END
+		AND TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END
+		THEN OL.ORDER_LIST_QY ELSE 0
+		END), 1)
+		END AS sales_change_rate -- 판매 증가율
+
+		FROM ORDER_LIST OL
+		JOIN ORDER_INFO OI ON OL.ORDER_NO = OI.ORDER_NO
+		JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+
+		WHERE TO_CHAR(OI.ORDER_DATE, 'YYYY') = TO_CHAR(#{year})
+		AND (TO_CHAR(OI.ORDER_DATE, 'MM') = LPAD(TO_CHAR(#{month}), 2, '0')
+		OR TO_CHAR(OI.ORDER_DATE, 'MM') = CASE WHEN #{month} = 1 THEN '12' ELSE
+		LPAD(TO_CHAR(#{month} - 1), 2, '0') END)
+
+		GROUP BY OL.GDS_NO
+		ORDER BY sales_change_rate asc
+		FETCH FIRST 5 ROWS ONLY
+	</select>
+
+	<select id="getGdsName" parameterType="hashMap" resultType="kr.or.ddit.vo.GoodsVO">
+
+  SELECT
+       GDS_NM
+    FROM
+        GOODS
+    WHERE GDS_NO=  #{gdsNo}
+
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

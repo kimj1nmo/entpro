@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.ProjectStatsMapper">
+	
+	<!-- 차트용 리스트 불러오기 -->
+	<select id="getProjectList">
+		SELECT B.PRO_TTL, TO_CHAR(B.PRO_REG_DATE, 'YYYY') PRO_REG_DATE, COUNT(B.PRO_TTL) PRO_TTL_CNT
+		FROM PROJECT B
+		GROUP BY B.PRO_TTL, TO_CHAR(B.PRO_REG_DATE, 'YYYY')
+	</select>
+	
+	<!-- 년도별 프로젝트 시행 횟수 구하기 -->
+	<select id="statsChartCnt" parameterType="kr.or.ddit.vo.ProjectVO" resultType="kr.or.ddit.vo.ProjectVO">
+		SELECT B.PRO_TTL, TO_CHAR(B.PRO_REG_DATE, 'YYYY') PRO_REG_DATE, COUNT(B.PRO_TTL) PRO_TTL_CNT
+		FROM PROJECT B
+		GROUP BY B.PRO_TTL, TO_CHAR(B.PRO_REG_DATE, 'YYYY')
+		HAVING TO_CHAR(B.PRO_REG_DATE, 'YYYY') BETWEEN #{lastYear}
+		AND #{year}
+		ORDER BY 1
+	</select>
+	
+	<!-- 전체그룹 년도별 프로젝트 횟수 -->
+	<select id="groupsCharts" parameterType="kr.or.ddit.vo.ProjectVO" resultType="kr.or.ddit.vo.ProjectVO">
+		SELECT G.GROUP_NAME, SUM(PS.GROUP_NO_CNT) GROUP_NO_CNT_SUM
+		FROM GROUPS G
+		LEFT JOIN (
+		    SELECT P.PRO_REG_DATE, P.GROUP_NO, COUNT(P.GROUP_NO) GROUP_NO_CNT
+		    FROM PROJECT P
+		    WHERE TO_CHAR(P.PRO_REG_DATE, 'YYYY') IN #{year}
+		    GROUP BY P.PRO_REG_DATE, P.GROUP_NO
+		) PS ON(G.GROUP_NO = PS.GROUP_NO)
+		GROUP BY G.GROUP_NAME
+	</select>
+	
+</mapper>

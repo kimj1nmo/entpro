@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.companypage.audition.AuditionMapper">
+
+
+<resultMap type="kr.or.ddit.vo.AuditionVO" id="audMap">
+<result property="audNo" column="AUD_NO"/>
+<result property="audNm" column="AUD_NM"/>
+<result property="audDate" column="AUD_DATE"/>
+<result property="audAuddate" column="AUD_AUDDATE"/>
+<result property="audDtls" column="AUD_DTLS"/>
+<result property="audLc" column="AUD_LC"/>
+<result property="audCheck" column="AUD_CHECK"/>
+<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+<result property="audType" column="AUD_TYPE"/>
+	<association property="fileGroupVO"
+	resultMap="fileGroupMap"></association>
+
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.AuditionReqstVO" id="audReqMap">
+	<result property="audReqstNo" column="AUD_REQST_NO"/>
+<result property="audNo" column="AUD_NO"/>
+<result property="audReqstNm" column="AUD_REQST_NM"/>
+<result property="audReqstPw" column="AUD_REQST_PW"/>
+<result property="audReqstTel" column="AUD_REQST_TEL"/>
+<result property="audReqstGen" column="AUD_REQST_GEN"/>
+<result property="ihidnum" column="IHIDNUM"/>
+<result property="audReqstAdd" column="AUD_REQST_ADD"/>
+<result property="audReqstDt" column="AUD_REQST_DT"/>
+<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+<result property="audReqstDtls" column="AUD_REQST_DTLS"/>
+<result property="audReqstPath" column="AUD_REQST_PATH"/>
+<result property="audReqstState" column="AUD_REQST_STATE"/>
+<result property="audReqstEmail" column="AUD_REQST_EMAIL"/>
+<result property="audType" column="AUD_TYPE"/>
+<result property="audNm" column="AUD_NM"/>
+
+	<association property="fileGroupVO"
+	resultMap="fileGroupMap"></association>
+
+	</resultMap>
+
+
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+	<select id="getAuditionListFinish" parameterType="String"
+		resultType="kr.or.ddit.vo.AuditionVO">
+		SELECT
+		AUD_NO,
+		AUD_NM,
+		AUD_DATE
+		FROM
+		AUDITION
+		WHERE
+		1 = 1
+		<if test="type == 0">
+<!-- 			AND AUD_DATE &gt; SYSDATE -->
+<!-- 			            <![CDATA[AND AUD_DATE < SYSDATE 		]]> -->
+and aud_check=1
+		</if>
+		<if test="type == 1">
+<!--             <![CDATA[ -->
+<!--             AND (AUD_DATE > SYSDATE -->
+<!-- 						OR AUD_DATE IS NULL) -->
+<!-- 						]]> -->
+and (aud_check=0 or aud_check=null)
+
+		</if>
+		ORDER BY AUD_DATE DESC
+	</select>
+
+
+	<!-- 총 페이지 수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(AR.AUD_REQST_NO) FROM AUDITION_REQST AR
+		LEFT OUTER JOIN
+		AUDITION A ON
+		A.AUD_NO = AR.AUD_NO
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+			AND(
+			A.AUD_NM LIKE '%' || #{keyword} || '%' OR
+			AR.AUD_REQST_DTLS LIKE '%' || #{keyword} || '%'
+			)
+		</if>
+			<if test="check==1">
+			AND AR.AUD_REQST_STATE=0
+		</if>
+	</select>
+
+<select id="getTotalAud" parameterType="hashMap" resultType="int">
+	SELECT
+ 	COUNT(*)
+	FROM
+    audition
+</select>
+
+
+	<select id="list" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.AuditionReqstVO">
+		SELECT
+		T.RNUM
+		, T.AUD_NO, T.AUD_NM, T.AUD_DATE, T.AUD_DTLS, T.AUD_LC,
+		T.AUD_TYPE
+		, T.AUD_REQST_NO, T.AUD_REQST_NM, T.AUD_REQST_PW
+		,
+		T.AUD_REQST_TEL, T.AUD_REQST_GEN, T.IHIDNUM, T.AUD_REQST_ADD
+		,
+		T.AUD_REQST_DT, T.FILE_GROUP_NO, T.AUD_REQST_DTLS, T.AUD_REQST_PATH
+		,
+		T.AUD_REQST_STATE
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		<if test="sortName == 'audReqstNo'">
+			ORDER BY AG.AUD_REQST_NO
+		</if>
+		<if test="sortName == 'audReqstNm'">
+			ORDER BY AG.AUD_REQST_NM
+		</if>
+		<if test="sortName == 'audNm'">
+			ORDER BY A.AUD_NM
+		</if>
+		<if test="sortName == 'audType'">
+			ORDER BY A.AUD_TYPE
+		</if>
+		<if test="sortName == 'audReqstDt'">
+			ORDER BY AG.AUD_REQST_DT
+		</if>
+		<if test="sortName == 'audReqstGen'">
+			ORDER BY AG.AUD_REQST_GEN
+		</if>
+		<if test="sortName == 'audReqstState'">
+			ORDER BY AG.AUD_REQST_STATE
+		</if>
+		<if test="mode == 0">
+			asc
+		</if>
+		<if test="mode == 1">
+			desc
+		</if>
+		) AS RNUM
+		, A.AUD_NO, A.AUD_NM, A.AUD_DATE, A.AUD_DTLS, A.AUD_LC
+		,
+		A.AUD_TYPE
+		, AG.AUD_REQST_NO, AG.AUD_REQST_NM, AG.AUD_REQST_PW
+		,
+		AG.AUD_REQST_TEL, AG.AUD_REQST_GEN, AG.IHIDNUM, AG.AUD_REQST_ADD
+		,
+		AG.AUD_REQST_DT, AG.FILE_GROUP_NO, AG.AUD_REQST_DTLS,
+		AG.AUD_REQST_PATH
+		, AG.AUD_REQST_STATE
+
+		FROM AUDITION_REQST AG
+		LEFT OUTER
+		JOIN AUDITION A ON
+		A.AUD_NO = AG.AUD_NO
+
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+			AND(
+			A.AUD_NM LIKE '%' || #{keyword} || '%' OR
+			AG.AUD_REQST_DTLS LIKE '%' || #{keyword} || '%'
+
+			)
+		</if>
+			<if test="check==1">
+			AND AG.AUD_REQST_STATE=0
+		</if>
+		<if test="type == 0">
+<!-- 			AND A.AUD_DATE &gt; SYSDATE -->
+            <![CDATA[AND AUD_DATE < SYSDATE 		]]>
+
+		</if>
+		<if test="type == 1">
+<!-- 			AND (A.AUD_DATE &lt; SYSDATE -->
+<!-- 						OR A.AUD_DATE IS NULL) -->
+            <![CDATA[
+            AND (A.AUD_DATE > SYSDATE
+						OR A.AUD_DATE IS NULL)
+						]]>
+
+		</if>
+		<if test="searchNo !=null and searchNo !=''">
+		AND A.AUD_NO=#{searchNo}
+				</if>
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+	</select>
+
+<select id="listAud" parameterType="hashMap"
+		resultMap="audMap">
+		SELECT
+		T.RNUM
+        ,T.AUD_NO, T.AUD_NM, T.AUD_DATE, T.AUD_DTLS
+        , T.AUD_LC, T.FILE_GROUP_NO, T.AUD_TYPE, T.AUD_AUDDATE,T.AUD_CHECK
+        , T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		, T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT,T.FILE_MIME
+		, T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+
+			ORDER BY A.AUD_NO
+			desc
+		) AS RNUM
+		,A.AUD_NO, A.AUD_NM, A.AUD_DATE, A.AUD_DTLS
+        , A.AUD_LC, A.FILE_GROUP_NO, A.AUD_TYPE, A.AUD_AUDDATE,A.AUD_CHECK
+
+		, FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+
+		FROM AUDITION A
+		LEFT OUTER JOIN FILE_GROUP FG ON FG.FILE_GROUP_NO = A.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+
+		WHERE 1 = 1
+
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+	</select>
+
+	<!--오디션 디테일  -->
+	<select id="audDetail" parameterType="hashMap" resultMap="audMap">
+	SELECT
+    A.aud_no
+  , A.aud_nm
+  , A.aud_date
+  , A.aud_dtls
+  , A.aud_lc
+  , A.file_group_no
+  , A.aud_type
+  , A.aud_auddate
+  , A.aud_check
+  , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+  , FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+  , FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+FROM
+    audition A
+    		LEFT OUTER JOIN FILE_GROUP FG ON FG.FILE_GROUP_NO = A.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    where aud_no= #{audNo}
+
+	</select>
+
+	<insert id="createAudition" parameterType="kr.or.ddit.vo.AuditionVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="audNo">
+			SELECT NVL(MAX(AUD_NO),0)+1 FROM AUDITION
+		</selectKey>
+	INSERT INTO AUDITION (
+    AUD_NO
+    , AUD_NM
+    , AUD_DATE
+    , AUD_DTLS
+    , AUD_LC
+    , AUD_TYPE
+    , AUD_AUDDATE
+    , AUD_CHECK
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, FILE_GROUP_NO
+		</if>
+		) VALUES (
+		#{audNo}
+		, #{audNm}
+		, #{audDate}
+		,  #{audDtls}
+		,#{audLc}
+		,#{audType}
+		,#{audAuddate}
+		, 0
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, #{fileGroupNo}
+		</if>
+
+		)
+	</insert>
+	<update id="endAudition" parameterType="hashMap" >
+
+	UPDATE AUDITION
+		SET
+		    AUD_CHECK = 1
+		WHERE
+		AUD_NO = #{audNo}
+	</update>
+	<update id="updateAudition" parameterType="kr.or.ddit.vo.AuditionVO" >
+
+	UPDATE AUDITION
+		SET
+		    AUD_NO=#{audNo}
+		    , AUD_NM=#{audNm}
+		    , AUD_DATE=#{audDate}
+		    , AUD_DTLS=#{audDtls}
+		    , AUD_LC=#{audLc}
+		    , AUD_TYPE=#{audType}
+		    , AUD_AUDDATE=#{audAuddate}
+		    , AUD_CHECK=#{audCheck}
+		 <if test="fileGroupNo!=null and fileGroupNo!=''">
+		    , FILE_GROUP_NO=#{fileGroupNo}
+		</if>
+		WHERE
+		AUD_NO = #{audNo}
+	</update>
+	<!-- 	//오디션 신청 정보 가져오기 -->
+	<select id="audReqstDetail" parameterType="hashMap" resultMap="audReqMap">
+		SELECT
+		    AR.AUD_REQST_NO
+		  , AR.AUD_NO
+		  , AR.AUD_REQST_NM
+		  , AR.AUD_REQST_PW
+		  , AR.AUD_REQST_TEL
+		  , AR.AUD_REQST_GEN
+		  , AR.IHIDNUM
+		  , AR.AUD_REQST_ADD
+		  , AR.AUD_REQST_DT
+		  , AR.FILE_GROUP_NO
+		  , AR.AUD_REQST_DTLS
+		  , AR.AUD_REQST_PATH
+		  , AR.AUD_REQST_STATE
+		  , AR.AUD_REQST_EMAIL
+		  , A.AUD_NO, A.AUD_TYPE, A.AUD_NM, A.AUD_LC
+		  , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		  , FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		  , FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM
+		    AUDITION_REQST AR
+		        LEFT OUTER JOIN AUDITION A ON A.AUD_NO = AR.AUD_NO
+		        LEFT OUTER JOIN FILE_GROUP FG ON FG.FILE_GROUP_NO = AR.FILE_GROUP_NO
+				LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE AR.AUD_REQST_NO= #{audReqstNo}
+	</select>
+
+		<!--
+		 //\audReqstState 변경
+	int audReqstStateUpt(Map<String, Object> map);
+		 -->
+		<update id="audReqstStateUpt" parameterType="hashMap" >
+
+	UPDATE AUDITION_REQST
+SET
+     AUD_REQST_STATE = #{audReqstState}
+WHERE
+        AUD_REQST_NO = #{audReqstNo}
+	</update>
+
+	<select id="checkNoRespTotal" resultType="int">
+		SELECT
+		 COUNT(AUD_REQST_NO)
+		FROM
+		    AUDITION_REQST
+		    WHERE AUD_REQST_STATE=0
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 오라클에 들어간 스케줄러 -->
+<!--
+
+BEGIN
+    DBMS_SCHEDULER.CREATE_JOB(
+        job_name        => 'update_audition_check_job',   작업 이름
+        job_type        => 'PLSQL_BLOCK',                PLSQL 블록 실행
+        job_action      => '
+            BEGIN
+                UPDATE audition
+                SET aud_check = 1
+                WHERE aud_date < TRUNC(SYSDATE);
+            END;',
+        start_date      => SYSTIMESTAMP,                 작업 시작 시간
+        repeat_interval => 'FREQ=DAILY; BYHOUR=0; BYMINUTE=0; BYSECOND=0',  매일 자정
+        enabled         => TRUE                          작업 활성화
+    );
+END;
+ -->
+

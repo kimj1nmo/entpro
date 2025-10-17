@@ -1,0 +1,62 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<%@ include file="../include/header_user.jsp" %>
+
+<script type="text/javascript" src="/js/jquery-3.6.0.js"></script>
+
+<!-- ///// content 시작 ///// -->
+<main class="main">
+
+
+<section class="d-flex vh-100">
+  <div class="container-fluid row justify-content-center align-content-center">
+    <div class="card bg-dark" style="border-radius: 1rem;">
+      <div class="card-body p-5 text-center">
+        <h2 class="text-white">LOGIN</h2>
+        <p class="text-white-50 mt-2 mb-5">서비스를 사용하려면 로그인을 해주세요!</p>
+
+        <div class = "mb-2">
+          <form action="/login" method="POST">
+<%--             <input type="hidden" name="${_csrf?.parameterName}" value="${_csrf?.token}" /> --%>
+            <div class="mb-3">
+              <label class="form-label text-white">아이디</label>
+              <input type="text" class="form-control" name="username"
+              	placeholder="아이디" value="" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-white">Password</label>
+              <input type="password" class="form-control" name="password"
+              	placeholder="비밀번호" value="" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+          <button type="button" class="btn btn-secondary mt-3" onclick="location.href='/findId'">아이디 찾기</button>
+          <button type="button" class="btn btn-secondary mt-3" onclick="location.href='/findPw'">비밀번호 찾기</button>
+
+          <button type="button" class="btn btn-secondary mt-3" onclick="location.href='/signup'">회원가입</button>
+          <button type="button" class="btn btn-warning mt-3" id="btnDefaultAuths">TB_MEMBERS 및 TB_AUTHS테이블 생성</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script type="text/javascript">
+$("#btnDefaultAuths").on("click",function(){
+// 	$.ajax({
+// 		url:"/createMembersAuths",
+// 		type:"post",
+// 		dataType:"text",
+// 		success:function(result){
+// 			console.log("result : ", result);
+
+			alert("static폴더의 upload 폴더의 기본테이블SQL.txt를 참고하여 생성해주세요");
+// 		}
+// 	});
+});
+</script>
+
+<!-- ///// content 끝 ///// -->
+
+<%@ include file="../include/footer_user.jsp" %>

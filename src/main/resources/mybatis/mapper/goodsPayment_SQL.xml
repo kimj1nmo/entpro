@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.shop.mapper.GoodsPaymentMapper">
+<!-- 생성문 -->
+<insert id="insertGoodsPayment">
+    INSERT INTO GOODS_PAYMENT (
+        ORDER_NO,
+        PAYCO_NO,
+        GDS_PAY_AMT,
+        GDS_PAY_STATE,
+        GDS_PAY_DT
+    ) VALUES (
+        #{orderNo},
+        #{paycoNo},
+        #{gdsPayAmt},
+        #{gdsPayState},
+        SYSDATE
+    )
+</insert>
+
+
+
+
+</mapper>

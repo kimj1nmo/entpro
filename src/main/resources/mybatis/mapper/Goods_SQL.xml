@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.shop.mapper.GoodsMapper">
+
+    <!-- ✅ GoodsVO와 FileDetailVO를 매핑하는 resultMap -->
+    <resultMap id="goodsMap" type="kr.or.ddit.vo.GoodsVO">
+        <id property="gdsNo" column="gdsNo"/>
+        <result property="ctgryNo" column="ctgryNo"/>
+        <result property="gdsNm" column="gdsNm"/>
+        <result property="gdsPrice" column="gdsPrice"/>
+        <result property="fileGroupNo" column="fileGroupNo"/>
+        <result property="gdsDc" column="gdsDc"/>
+        <result property="memId" column="memId"/>
+        <result property="gdsDate" column="gdsDate"/>
+
+        <!-- ✅ fileDetailVOList에 파일 정보 리스트 매핑 -->
+        <collection property="fileDetailVOList" ofType="kr.or.ddit.vo.FileDetailVO">
+            <id property="fileSn" column="fileSn"/>
+            <result property="fileOriginalName" column="fileOriginalName"/>
+            <result property="fileSaveName" column="fileSaveName"/>
+            <result property="fileSaveLocate" column="fileSaveLocate"/>
+            <result property="fileSize" column="fileSize"/>
+            <result property="fileExt" column="fileExt"/>
+            <result property="fileMime" column="fileMime"/>
+        </collection>
+    </resultMap>
+
+     <resultMap id="noticeMap" type="kr.or.ddit.vo.EventVO">
+    <id property="evtBoardNo" column="EVT_BOARD_NO"/>
+    <result property="evtBoardCtgry" column="EVT_BOARD_CTGRY"/>
+    <result property="evtBoardTtl" column="EVT_BOARD_TTL"/>
+    <result property="evtBoardCn" column="EVT_BOARD_CN"/>
+    <result property="evtBoardDate" column="EVT_BOARD_DATE"/>
+    <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+</resultMap>
+
+
+    <!-- ✅ 특정 상품 조회 (상품 + 파일 정보) -->
+    <select id="getGoodsById" parameterType="int" resultMap="goodsMap">
+        SELECT
+            G.GDS_NO AS gdsNo,
+            G.CTGRY_NO AS ctgryNo,
+            G.GDS_NM AS gdsNm,
+            G.GDS_PRICE AS gdsPrice,
+            G.FILE_GROUP_NO AS fileGroupNo,
+            G.GDS_DC AS gdsDc,
+            G.MEM_ID AS memId,
+            G.GDS_DATE AS gdsDate,
+            FD.FILE_SN AS fileSn,
+            FD.FILE_ORIGINAL_NAME AS fileOriginalName,
+            FD.FILE_SAVE_NAME AS fileSaveName,
+            FD.FILE_SAVE_LOCATE AS fileSaveLocate,
+
+            FD.FILE_SIZE AS fileSize,
+            FD.FILE_EXT AS fileExt,
+            FD.FILE_MIME AS fileMime
+        FROM GOODS G
+        LEFT JOIN FILE_DETAIL FD ON G.FILE_GROUP_NO = FD.FILE_GROUP_NO
+        WHERE G.GDS_NO = #{gdsNo}
+    </select>
+
+    <!-- ✅ 가장 높은 GDS_NO 조회 -->
+    <select id="getMaxGdsNo" resultType="int">
+        SELECT MAX(GDS_NO) FROM GOODS
+    </select>
+
+    <!-- ✅ 모든 상품 조회 (상품 + 파일 정보) -->
+    <select id="getAllGoods" resultMap="goodsMap">
+        SELECT
+            G.GDS_NO AS gdsNo,
+            G.CTGRY_NO AS ctgryNo,
+            G.GDS_NM AS gdsNm,
+            G.GDS_PRICE AS gdsPrice,
+            G.FILE_GROUP_NO AS fileGroupNo,
+            G.GDS_DC AS gdsDc,
+            G.MEM_ID AS memId,
+            G.GDS_DATE AS gdsDate,
+            FD.FILE_SN AS fileSn,
+            FD.FILE_ORIGINAL_NAME AS fileOriginalName,
+            FD.FILE_SAVE_NAME AS fileSaveName,
+            FD.FILE_SAVE_LOCATE AS fileSaveLocate,
+            FD.FILE_SIZE AS fileSize,
+            FD.FILE_EXT AS fileExt,
+            FD.FILE_MIME AS fileMime
+        FROM GOODS G
+        LEFT JOIN FILE_DETAIL FD ON G.FILE_GROUP_NO = FD.FILE_GROUP_NO
+        ORDER BY G.GDS_NO
+    </select>
+
+<select id="getGroupGoods" parameterType="int" resultMap="goodsMap">
+    SELECT
+        G.GDS_NO AS gdsNo,
+        G.CTGRY_NO AS ctgryNo,
+        G.GDS_NM AS gdsNm,
+        G.GDS_PRICE AS gdsPrice,
+        G.FILE_GROUP_NO AS fileGroupNo,
+        G.GDS_DC AS gdsDc,
+        G.MEM_ID AS memId,
+        G.GDS_DATE AS gdsDate,
+		G.GROUP_NO AS groupNo,
+        -- ✅ 파일 정보
+        FD.FILE_SN AS fileSn,
+        FD.FILE_ORIGINAL_NAME AS fileOriginalName,
+        FD.FILE_SAVE_NAME AS fileSaveName,
+        FD.FILE_SAVE_LOCATE AS fileSaveLocate,
+        FD.FILE_SIZE AS fileSize,
+        FD.FILE_EXT AS fileExt,
+        FD.FILE_MIME AS fileMime
+    FROM GOODS G
+    LEFT JOIN FILE_DETAIL FD ON G.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    WHERE G.GROUP_NO = #{groupNo}  -- ✅ 그룹별 상품 조회 조건 추가
+    ORDER BY G.GDS_NO ASC
+</select>
+
+
+
+  <select id="getAllNotices" resultMap="noticeMap">
+    SELECT
+        EVT_BOARD_NO,
+        EVT_BOARD_TTL,
+        EVT_BOARD_CN,
+        EVT_BOARD_DATE,
+        FILE_GROUP_NO
+    FROM EVENT_BOARD
+    ORDER BY EVT_BOARD_DATE DESC
+</select>
+
+<!-- ✅ 특정 공지사항 조회 (EVENT_BOARD 테이블로 변경) -->
+<select id="getNoticeById" parameterType="int" resultMap="noticeMap">
+    SELECT
+        EVT_BOARD_NO AS ntceBoardNo,
+        EVT_BOARD_TTL AS ntceBoardTtl,
+        EVT_BOARD_CN AS ntceBoardCn,
+        EVT_BOARD_DATE AS regDate,
+        FILE_GROUP_NO
+    FROM EVENT_BOARD
+    WHERE EVT_BOARD_NO = #{ntceBoardNo}
+</select>
+
+<select id="getGoodsName" parameterType="int" resultType="String">
+  SELECT
+  gds_nm
+FROM
+    goods
+    where gds_no=#{gdsNo}
+</select>
+</mapper>

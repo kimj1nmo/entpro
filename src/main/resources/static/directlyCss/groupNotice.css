@@ -1,0 +1,63 @@
+@charset "UTF-8";
+
+/* 페이징 영역 */
+#divPagingArea {
+	background-color: rgb(244, 246, 249);
+	padding: 0.5rem;
+	height: auto;
+}
+
+/* a링크 등록 버튼 */
+#regBtn {
+	height: auto;
+	padding: 0.5rem 1rem;
+}
+
+/* 마우스 호버 */
+.hoverText:hover {
+	color: blue;
+	cursor: pointer;
+}
+
+/* 테이블 양식 추가받은 거 */
+.hidden-col {
+	display: none;
+}
+
+.card-header {
+	display: flex; /* 한 줄로 정렬 */
+	align-items: center; /* 세로 중앙 정렬 */
+}
+
+.card-tools {
+	margin-left: auto; /* 검색창을 오른쪽 끝으로 밀어냄 */
+	display: flex;
+	align-items: center; /* 내부 요소 세로 중앙 정렬 */
+}
+
+.register-btn {
+	margin-left: auto; /* 버튼을 오른쪽 끝으로 이동 */
+	padding: 10px 15px; /* 버튼 크기 조정 */
+	font-size: 14px; /* 버튼 글씨 크기 조정 */
+}
+
+.card-footer2 {
+	display: flex;
+	justify-content: flex-end; /* 모든 요소를 오른쪽으로 정렬 */
+	align-items: center; /* 수직 중앙 정렬 */
+	gap: 10px; /* 페이징 영역과 버튼 간격 조정 */
+}
+
+a {
+	color: black;
+	text-decoration: none; /* 밑줄 없애기 (선택사항) */
+}
+
+a:hover {
+	color: black; /* 마우스 올려도 색 유지 */
+}
+
+.pageTitle {
+	margin: 12px;
+	font-weight: bold;
+}

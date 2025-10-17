@@ -1,0 +1,492 @@
+/* 특정 모달에만 스타일 적용 */
+#modal-membership {
+	/*     background-color: rgba(0, 0, 0, 0.8); 모달 배경 투명도 */
+	color: black; /* 텍스트 색상 */
+}
+
+#modal-membership .modal-content {
+	/* 	padding: 12px 32px 32px; */
+	border-radius: 20px; /* 모달 내용의 테두리 둥글게 */
+	/*     background-color: #333; 모달 내부 배경 */
+}
+
+/* 헤더 */
+.DigitalMembershipSubscribeModalView_header__wEixT {
+  background-color: #fff;
+  left: 0;
+  padding: 30px 0 20px;
+  position: -webkit-sticky;
+  position: sticky;
+  right: 0;
+  text-align: center;
+  top: 0;
+  	border-radius: 20px; /* 모달 내용의 테두리 둥글게 */
+  
+}
+.DigitalMembershipSubscribeModalView_title__XtfS\+ {
+  font-size: 20px;
+  line-height: 30px;
+}
+.use-webfont body, .use-webfont button, .use-webfont input, .use-webfont select, .use-webfont table, .use-webfont textarea {
+  font-family: Pretendard,-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+.DigitalMembershipSubscribeModalView_close__GjhEU {
+  position: absolute;
+  right: 24px;
+  top: 32px;
+}
+button {
+  background: #0000;
+  color: inherit;
+  cursor: pointer;
+}
+
+body, button, input, select, table, textarea {
+  font-family: -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  font-size: 13px;
+}
+
+#modal-membership .modal-body {
+	padding: 12px 32px 32px;
+	/*     border-radius: 50px; 모달 내용의 테두리 둥글게 */
+	/*     background-color: #333; 모달 내부 배경 */
+}
+#modal-membership .modal-header {
+    display: flex; /* 플렉스박스 사용 */
+    align-items: center; /* 세로 가운데 정렬 */
+    justify-content: center; /* 가로 가운데 정렬 */
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 0; /* 상하 패딩 추가 */
+}
+
+#modal-membership .modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.5;
+    text-align: center; /* 텍스트 가운데 정렬 */
+    margin: 0; /* 기본 마진 제거 */
+}
+
+
+#modalMembershipLabel {
+	font-size: 20px;
+	line-height: 30px;
+	display: block;
+	font-size: 1.17em;
+	margin-block-start: 1em;
+	margin-block-end: 1em;
+	margin-inline-start: 0px;
+	margin-inline-end: 0px;
+	font-weight: bold;
+	unicode-bidi: isolate;
+	text-align: center;
+}
+
+#modal-membership .modal-footer {
+	/*     background-color: #444; 푸터 배경 */
+	/*     border-top: 2px solid #555; 푸터 위 테두리 */
+	padding-top: 0;
+	bottom: 0;
+	left: 0;
+	position: -webkit-sticky;
+	position: s
+}
+/* 
+.membershipButton{
+	  border-radius: 0; 
+   border-top: 1px solid #f0f0f0;
+  flex: 1 1;
+  height: 68px;
+  width: auto;
+    font-size: 16px;
+      font-weight: 700;
+	  line-height: 19px;
+	  background-color:white;
+	  border-color:white;
+
+  border-radius: 8px;
+  color: #08ccca;
+  font-size: 16px;
+  font-weight: 700;
+  height: 50px;
+  line-height: 19px;
+  width: 170px; 
+}
+
+  */
+  
+/*@@@@@@@@@@@   설명 @@@@@@@@@@@@@*/
+.DigitalMembershipSubscribeModalView_digital_membership_info__o8nfd {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.DigitalMembershipSubscribeModalView_digital_membership_info__o8nfd:before {
+  background: no-repeat url(https://cdn-v2pstatic.weverse.io/wev_web_fe/p/2_31_1/public/static/media/icon_digital_membership.2115d037ae6b58097e1c.png) 0 0/contain;
+  content: "";
+  display: block;
+  height: 64px;
+  margin: 0 auto;
+  width: 64px;
+}
+
+.DigitalMembershipSubscribeModalView_digital_membership_name__ftt-g {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 36px;
+  margin-top: 12px;
+}
+
+.DigitalMembershipSubscribeModalView_digital_membership_text__61uyL {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
+  margin-top: 8px;
+}
+
+.DigitalMembershipSubscribeModalView_price__P0SSx {
+  align-items: center;
+  column-gap: 4px;
+  display: flex;
+  font-size: 15px;
+  justify-content: center;
+  line-height: 21px;
+  margin-top: 12px;
+}
+
+.DigitalMembershipSubscribeModalView_price__P0SSx:before {
+  background: no-repeat url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAApCAYAAABHomvIAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAL1SURBVHgB7ZhNctpAEIVfC1HZuTiCfIJQxovsLBZx2SsnJzA+QewT2JzA5gSBE8ReJcELtExVnBQ+QXSDUKkkGyR1eiTA/IyEJCwVi3wbpFFr5jHT6u4Z4D+bQcgID+wavN91cGCBDBem6VLzi5toG97QiA6/DpGR1AK5v9cS81O5tDWPZWDuoLpzG955v1oi6ERrSxAb6tDrBwfPIZAHryyMx+9jhG1CF9VqO272pyQKnIgbyKWFYnBFZDNJpJH4+tj7gOLEIew7Wp1YYgVGPsd1FI8djaUnYQaNdyiN8OPTP9E1TnzvB8rEr+7S8aov6mfQH5extItUfFvXrBfIZKFsAq7pmmMEcqxPFIbBWp9fEKhSE9/vXcvlhktMjvR2FmWN1Fjcb6yEHHoSpz4MFfc2Di0uHX7bnfXbb/yUn1qW9+eDtxGJk6QeZozniHvkLjVkLRDC7MWDem0mUJL7JYrNGFmx4JlKk7imWlqmc2wbzOd8v28bMp3bJ24K8xu1xC+xtdCBElh+1kgNW0pglhBQNjUlcITtZaQEZt7IlAcNDRDdIT/uahM/LjVYyE3QM2B6XeRZ5oAuwpTm+7tg9KDEEt3ij381NQljbH6BLvzAMak5HPGnvTYMus70OpthIUDHQ1d+Wlobf3yCvASyNZW+w1RHR99vJrOQHsNrJT2OMhSukI8OHT3cqIuFkp8/71+B+DJlJyMpMtt4sdOlprPgIipFSRZQpZOF7HTEdWbZbWVPIst9nnm5AQdPPcqxSN7YapzJ8Uh3vkW/aeo31GbdRrl0ZebOlhv1Jf9moScfAT3qmmMEsouyqegThl5gxXdQNqaXXqCKjZh3/MIhZzLmCvFHH0RtlAZdxD2JFRgeMHIJImWMpJPX9QeY/YaK6EUdJPUktLSSDJLPB4UoqrOKTy7WQsNo077OTGWhsNhorTdNCX+sW6gYtvynUwlDUbZQA7Hsgxl3CLzupHCIbKmiMtLBbK89b/vXu6G3w20ulNPzD0/nFmeR5C2rAAAAAElFTkSuQmCC) 0 0/contain;
+  content: "";
+  flex-shrink: 0;
+  height: 20px;
+  width: 20px;
+}
+
+
+
+
+  /*내용*/
+  .DigitalMembershipSubscribeModalView_benefit_title__tTy0c {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 23px;
+  margin-top: 40px;
+  text-align: center;
+}
+
+.DigitalMembershipSubscribeModalView_benefit_description__--ED8 {
+  color: #444;
+  font-size: 13px;
+  line-height: 17px;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.DigitalMembershipSubscribeModalView_benefit_list__CGQYA {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  row-gap: 8px;
+}
+
+.DigitalMembershipSubscribeModalView_benefit__Iitmp {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #00000014;
+  padding: 12px 16px 12px 12px;
+}
+
+.DigitalMembershipBenefitView_item__r0VMI {
+  align-items: center;
+  column-gap: 16px;
+  display: flex;
+}
+
+.DigitalMembershipBenefitView_image_wrapper__nm07V {
+  flex-shrink: 0;
+  height: 48px;
+  width: 48px;
+}
+
+.DigitalMembershipBenefitView_image__eUU1d {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.DigitalMembershipBenefitView_title__1JnEB {
+  color: #000;
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 21px;
+  max-height: 42px;
+  overflow: hidden;
+  word-break: break-all;
+}
+.DigitalMembershipBenefitView_description__hUy0w {
+  color: #666;
+  font-size: 13px;
+  line-height: 17px;
+  margin-top: 2px;
+}
+
+.DigitalMembershipSubscribeModalView_per_month__yZo4s {
+  color: #666;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 21px;
+}
+
+.DigitalMembershipSubscribeModalView_digital_membership_info__o8nfd {
+  margin-top: 6px;
+  text-align: center;
+}
+
+li, ol, ul {
+  list-style: none;
+}
+
+body, button, dd, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, input, legend, li, ol, p, select, table, td, textarea, th, ul {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  display: list-item;
+  text-align: -webkit-match-parent;
+  unicode-bidi: isolate;
+}
+
+
+/*두번 째 모달
+.BaseModalView_modal_overlay__ap5fH {
+  align-items: center;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  padding: 30px 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 10000;
+}
+#modal membership2{
+  align-items: center;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  padding: 30px 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 10000;
+}
+*/
+.BaseModalView_modal_overlay__ap5fH {
+  align-items: center;
+  bottom: 0;
+  box-sizing: border-box;
+    display: none; /* 기본값: 화면에 표시되지 않음 */
+  justify-content: center;
+  left: 0;
+  padding: 30px 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+/*   z-index: 10000; */
+}
+#modal membership2 {
+  outline: none;
+  position: relative;
+}
+.BaseModalView_modal__wjtT1 {
+  outline: none;
+  position: relative;
+}
+
+.BaseModalView_content__ipny1 {
+  -ms-overflow-style: none;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  max-height: calc(100vh - 60px);
+  overflow: auto;
+  position: relative;
+  scrollbar-width: none;
+/*   fustify-conten:  */
+align-items:center;
+  
+}
+
+.JellyOrderModalLayoutView_modal_inner__RoNcU {
+  padding: 30px 34px 20px;
+  text-align: center;
+}
+
+.JellyOrderModalLayoutView_title__rLXTY {
+  color: #000;
+  display: block;
+  font-size: 20px;
+  line-height: 30px;
+}
+.JellyOrderModalLayoutView_title__rLXTY+.JellyOrderModalLayoutView_content__mXNj9, .JellyOrderModalLayoutView_title__rLXTY+.JellyOrderModalLayoutView_description__BZ-8I {
+  margin-top: 20px;
+}
+
+.JellySubscriptionModalView_info_list__yU7GO {
+  grid-gap: 12px 35px;
+  display: grid;
+  font-size: 15px;
+  gap: 12px 35px;
+  grid-template-columns: auto 1fr;
+  line-height: 23px;
+  text-align: left;
+}
+
+.JellySubscriptionModalView_info_title__ysmJK {
+  color: #8e8e8e;
+  max-width: 120px;
+}
+
+.JellySubscriptionModalView_info_text__2r5sp {
+  align-items: start;
+  color: #111;
+  display: flex;
+}
+
+.JellySubscriptionModalView_info_title__ysmJK {
+  color: #8e8e8e;
+  max-width: 120px;
+}
+.JellySubscriptionModalView_info_text__2r5sp.JellySubscriptionModalView_-option__WIWkB {
+  align-items: flex-end;
+}
+
+.JellySubscriptionModalView_info_title__ysmJK {
+  color: #8e8e8e;
+  max-width: 120px;
+}
+
+.JellySubscriptionModalView_info_text__2r5sp {
+  align-items: start;
+  color: #111;
+  display: flex;
+}
+
+.JellySubscriptionModalView_info_text__2r5sp.JellySubscriptionModalView_-jelly_text__PRagP:before {
+  background: no-repeat url(data:image/png;base64,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) 0 0/contain;
+  content: "";
+  flex-shrink: 0;
+  height: 18px;
+  margin: 2px 4px 0 0;
+  width: 19px;
+}
+
+.JellySubscriptionModalView_highlight__4B\+B7 {
+  color: #08ccca;
+  font-weight: 700;
+}
+
+.JellySubscriptionModalView_info_title__ysmJK {
+  color: #8e8e8e;
+  max-width: 120px;
+}
+
+.JellySubscriptionModalView_info_text__2r5sp {
+  align-items: start;
+  color: #111;
+  display: flex;
+}
+
+.JellyAutoPaymentInfoView_card_info__y20Lc {
+  margin-right: auto;
+}
+
+.JellyAutoPaymentInfoView_setting__rSbQm, .JellyAutoPaymentInfoView_setting__rSbQm:hover {
+  -webkit-text-decoration-line: underline;
+  text-decoration-line: underline;
+}
+
+.JellySubscriptionNoticeView_checkbox_wrapper__me4vY {
+  border-top: 1px solid #e4e4e4;
+  margin-top: 30px;
+  padding-top: 30px;
+  text-align: left;
+}
+
+.JellySubscriptionNoticeView_checkbox_label__Z1Z\+o {
+  color: #111;
+  display: inline-flex;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  vertical-align: top;
+}
+
+.JellySubscriptionNoticeView_notice_list__pZ9WW {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.JellySubscriptionNoticeView_notice_item__1bGaj {
+  color: #8e8e8e;
+  display: flex;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.JellySubscriptionNoticeView_notice_item__1bGaj+.JellySubscriptionNoticeView_notice_item__1bGaj {
+  margin-top: 12px;
+}
+
+.JellySubscriptionNoticeView_notice_item__1bGaj {
+  color: #8e8e8e;
+  display: flex;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+
+/*버튼*/
+.JellyOrderModalLayoutView_button_area__VULZ\+ {
+  padding-top: 12px;
+}
+.ModalButtonView_button_wrap__cqUzx {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+.ModalButtonView_button__B5k-Z.ModalButtonView_-cancel__q7X7J {
+  color: #111;
+}
+
+.ModalButtonView_button__B5k-Z:disabled {
+  color: #c8c8c8;
+}
+
+.ModalButtonView_button__B5k-Z+.ModalButtonView_button__B5k-Z {
+  margin-left: auto;
+}
+
+.ModalButtonView_button__B5k-Z {
+  border-radius: 8px;
+  color: #08ccca;
+  font-size: 16px;
+  font-weight: 700;
+  height: 50px;
+  line-height: 19px;
+  width: 170px;
+}
+
+.BaseModalView_modal__wjtT1 {
+  outline: none;
+  position: relative;
+}

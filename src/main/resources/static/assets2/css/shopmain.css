@@ -1,0 +1,196 @@
+/* ✅ 기본 섹션 스타일 */
+.section {
+    padding: 40px 0;
+    background-color: #f8f9fa;
+    text-align: center;
+}
+
+/* ✅ Swiper 슬라이더 */
+.swiper-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.swiper-wrapper {
+    display: flex;
+    transition: transform 0.3s ease-in-out;
+}
+
+.swiper-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 320px; /* 카드 크기 증가 */
+    margin-right: 20px;
+    text-align: center;
+}
+
+.goods-info {
+    text-align: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.goods-info img {
+    width: 280px;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.details-link {
+    color: #007bff;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.details-link:hover {
+    color: #0056b3;
+}
+
+/* ✅ Swiper 버튼 개선 */
+.swiper-button-prev, .swiper-button-next {
+    color: #007bff;
+    font-size: 24px;
+    transition: color 0.3s;
+}
+
+.swiper-button-prev:hover, .swiper-button-next:hover {
+    color: #0056b3;
+}
+
+.swiper-pagination {
+    bottom: 10px;
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* ✅ 포트폴리오 상품 카드 */
+.portfolio .card {
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.portfolio .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.portfolio .card-img-top {
+    height: 220px;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+}
+
+.portfolio .card-body {
+    padding: 15px;
+}
+
+.portfolio .card-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.portfolio .card-text {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.portfolio .card-price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* ✅ 필터 버튼 디자인 */
+#portfolio .nav-pills .nav-link {
+    margin: 0 5px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #6c757d;
+    border-radius: 20px;
+    transition: all 0.3s;
+    background-color: #e9ecef;
+    border: none;
+}
+
+#portfolio .nav-pills .nav-link.active {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+#portfolio .nav-pills .nav-link:hover {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+
+/* ✅ 포트폴리오 섹션 */
+#portfolio {
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 60px 0;
+    margin: 0;
+    text-align: center;
+}
+
+#portfolio .container-fluid {
+    padding: 0 15px;
+}
+
+#portfolio .row {
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+/* ✅ 페이지네이션 버튼 */
+#prev-btn, #next-btn {
+    min-width: 100px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 5px;
+}
+
+#prev-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+#next-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+#prev-btn:disabled, #next-btn:disabled {
+    background-color: #d6d6d6;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* ✅ 반응형 스타일 */
+@media (max-width: 768px) {
+    .swiper-slide {
+        width: 100%;
+    }
+
+    .goods-info img {
+        width: 100%;
+        height: auto;
+    }
+
+    .portfolio .card-img-top {
+        height: 180px;
+    }
+}

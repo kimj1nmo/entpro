@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.main.MainMapper">
+
+<!--아티스트  -->
+<resultMap type="kr.or.ddit.vo.ArtistVO" id="artistMap">
+		<result property="artistNo" column="ARTIST_NO" />
+		<result property="artistName" column="ARTIST_NAME" />
+		<result property="artistProfile" column="ARTIST_PROFILE" />
+		<result property="artistBirth" column="ARTIST_BIRTH" />
+		<result property="artistIntrcn" column="ARTIST_INTRCN" />
+		<result property="memId" column="MEM_ID" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+			<collection property="groupVOList"
+			resultMap="groupsMap"></collection>
+	</resultMap>
+
+<!--그룹  -->
+<resultMap type="kr.or.ddit.vo.GroupsVO" id="groupsMap">
+		<result property="groupNo" column="GROUP_NO"/>
+<result property="groupName" column="GROUP_NAME"/>
+<result property="groupBirth" column="GROUP_BIRTH"/>
+<result property="groupDspgn" column="GROUP_DSPGN"/>
+<result property="groupIntrcn" column="GROUP_INTRCN"/>
+<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+	</resultMap>
+
+	<!--굿즈  -->
+<resultMap type="kr.or.ddit.vo.GoodsVO" id="goodsMap">
+    <result property="gdsNo" column="GDS_NO"/>
+    <result property="ctgryNo" column="CTGRY_NO"/>
+    <result property="gdsNm" column="GDS_NM"/>
+    <result property="gdsPrice" column="GDS_PRICE"/>
+    <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+    <result property="gdsDc" column="GDS_DC"/>
+    <result property="memId" column="MEM_ID"/>
+    <result property="gdsDate" column="GDS_DATE"/>
+    <result property="categoryName" column="GDS_CTGRY_NM"/>  <!-- 수정 -->
+    <association property="fileGroupVO" resultMap="fileGroupMap"/>
+</resultMap>
+
+
+
+
+
+
+
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+
+
+<resultMap type="kr.or.ddit.vo.AuditionVO" id="audMap">
+<result property="audNo" column="AUD_NO"/>
+<result property="audNm" column="AUD_NM"/>
+<result property="audDate" column="AUD_DATE"/>
+<result property="audAuddate" column="AUD_AUDDATE"/>
+<result property="audDtls" column="AUD_DTLS"/>
+<result property="audLc" column="AUD_LC"/>
+<result property="audCheck" column="AUD_CHECK"/>
+<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+<result property="audType" column="AUD_TYPE"/>
+	<association property="fileGroupVO"
+	resultMap="fileGroupMap"></association>
+	</resultMap>
+
+
+
+	<resultMap type="kr.or.ddit.vo.AuditionReqstVO" id="audReqMap">
+	<result property="audReqstNo" column="AUD_REQST_NO"/>
+<result property="audNo" column="AUD_NO"/>
+<result property="audReqstNm" column="AUD_REQST_NM"/>
+<result property="audReqstPw" column="AUD_REQST_PW"/>
+<result property="audReqstTel" column="AUD_REQST_TEL"/>
+<result property="audReqstGen" column="AUD_REQST_GEN"/>
+<result property="ihidnum" column="IHIDNUM"/>
+<result property="audReqstAdd" column="AUD_REQST_ADD"/>
+<result property="audReqstDt" column="AUD_REQST_DT"/>
+<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+<result property="audReqstDtls" column="AUD_REQST_DTLS"/>
+<result property="audReqstPath" column="AUD_REQST_PATH"/>
+<result property="audReqstState" column="AUD_REQST_STATE"/>
+<result property="audReqstEmail" column="AUD_REQST_EMAIL"/>
+<result property="audType" column="AUD_TYPE"/>
+<result property="audNm" column="AUD_NM"/>
+
+	<association property="fileGroupVO"
+	resultMap="fileGroupMap"></association>
+
+	</resultMap>
+<select id="getCommList" parameterType="String" resultMap="groupsMap">
+
+SELECT
+		T.RNUM
+		,T.GROUP_NO
+        ,T.GROUP_NAME
+        ,T.GROUP_BIRTH
+        ,T.GROUP_DSPGN
+        ,T.GROUP_INTRCN
+        ,T.FILE_GROUP_NO
+        ,T.COMM_REG_NO
+        ,T.COMM_REG_JOIN
+        ,T.COMM_REG_NICK
+        ,T.MEM_ID
+        , T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		, T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT,T.FILE_MIME
+		, T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+        order by COMM_REG_JOIN
+		) AS RNUM
+        ,g.GROUP_NO
+        ,g.GROUP_NAME
+        ,g.GROUP_BIRTH
+        ,g.GROUP_DSPGN
+        ,g.GROUP_INTRCN
+        ,g.FILE_GROUP_NO
+        ,CR.COMM_REG_NO
+        ,CR.COMM_REG_JOIN
+        ,CR.COMM_REG_NICK
+        ,CR.MEM_ID
+        , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		 FROM
+        COMMUNITY_REGDATA CR
+    JOIN
+        groups g
+    ON
+        g.group_no = CR.group_no
+        LEFT OUTER JOIN FILE_GROUP FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+	LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    WHERE
+        CR.MEM_ID = #{username}
+
+
+
+		) T
+
+</select>
+
+<select id="getGroupsAll" resultMap="groupsMap">
+SELECT
+    G.GROUP_NO
+  , G.GROUP_NAME
+  , G.GROUP_BIRTH
+  , G.GROUP_DSPGN
+  , G.GROUP_INTRCN
+  , G.FILE_GROUP_NO
+  , FG.FILE_SAVE_LOCATE
+FROM
+    GROUPS G LEFT JOIN FILE_DETAIL FG ON FG.FILE_GROUP_NO=G.FILE_GROUP_NO
+    LEFT JOIN FILE_DETAIL FG ON FG.FILE_GROUP_NO=G.FILE_GROUP_NO
+</select>
+
+<!-- 아티스트 서치 -->
+<select id="searchArtist" parameterType="String" resultMap="artistMap">
+SELECT
+    A.ARTIST_NO
+  , A.ARTIST_NAME
+  , A.ARTIST_PROFILE
+  , A.ARTIST_BIRTH
+  , A.ARTIST_INTRCN
+  , A.MEM_ID
+  , A.FILE_GROUP_NO
+  , G.GROUP_NAME
+  ,G.group_nO
+  , FG.FILE_SAVE_LOCATE
+
+FROM
+    ARTIST A left join GROUP_PSITN GP ON A.ARTIST_NO=GP.ARTIST_NO
+                left join GROUPS G ON GP.GROUP_NO=G.GROUP_NO
+                left join FILE_DETAIL FG ON FG.FILE_GROUP_NO=A.FILE_GROUP_NO
+                   WHERE 1 = 1
+		<if test="searchName !=null and searchName !=''">
+		AND (
+		A.ARTIST_NAME LIKE
+		'%' ||
+		#{searchName} || '%' OR
+		A.ARTIST_PROFILE LIKE '%' || #{searchName} ||
+		'%'
+		)
+</if>
+</select>
+
+
+<!-- 그룹 서치 -->
+<select id="searchGroups" parameterType="String" resultMap="groupsMap">
+SELECT
+    G.GROUP_NO
+  , G.GROUP_NAME
+  , G.GROUP_BIRTH
+  , G.GROUP_DSPGN
+  , G.GROUP_INTRCN
+  , G.FILE_GROUP_NO
+    , FG.FILE_SAVE_LOCATE
+
+FROM
+    GROUPS G
+     left join FILE_DETAIL FG ON FG.FILE_GROUP_NO=G.FILE_GROUP_NO
+
+   WHERE 1 = 1
+		<if test="searchName !=null and searchName !=''">
+		AND (
+		G.GROUP_NAME LIKE
+		'%' || #{searchName} || '%'
+		)
+		</if>
+</select>
+
+
+<!-- 상품 서치 -->
+
+<select id="searchGoods" parameterType="String" resultMap="goodsMap">
+SELECT
+    G.GDS_NO
+  , G.CTGRY_NO
+  , G.GDS_NM
+  , G.GDS_PRICE
+  , G.FILE_GROUP_NO
+  , G.GDS_DC
+  , G.MEM_ID
+  , G.GDS_DATE
+      , FG.FILE_SAVE_LOCATE
+	,GC.GDS_CTGRY_NM
+FROM
+    GOODS G
+        left join GDS_CTGRY GC ON GC.GDS_CTGRY_NO=G.CTGRY_NO
+    left join FILE_DETAIL FG ON FG.FILE_GROUP_NO=G.FILE_GROUP_NO
+       WHERE 1 = 1
+		<if test="searchName !=null and searchName !=''">
+		AND (
+		G.GDS_NM LIKE '%' || #{searchName} || '%' OR
+		G.GDS_DC LIKE '%' || #{searchName} ||'%'
+		)
+		</if>
+</select>
+
+
+<!--	//오디션 신청 갯수
+	public int getReqstTotal(Map<String, Object> map);
+
+	//오디션 신청 리스트
+	public List<AuditionReqstVO> getReqstListAjax(Map<String, Object> map);
+  -->
+<select id="getReqstTotal" parameterType="hashMap" resultType="int">
+			SELECT COUNT(*) FROM AUDITION_REQST
+		WHERE 1 = 1
+			<if test="keyword!=null and keyword!=''">
+			AND (
+			AUD_REQST_NM LIKE '%' || #{keyword} || '%'
+			)
+		</if>
+</select>
+
+<select id="getReqstListAjax" parameterType="hashMap" resultMap="audReqMap">
+	SELECT
+		T.RNUM
+		, T.AUD_NO, T.AUD_NM, T.AUD_DATE, T.AUD_DTLS, T.AUD_LC,
+		T.AUD_TYPE
+		, T.AUD_REQST_NO, T.AUD_REQST_NM, T.AUD_REQST_PW
+		,
+		T.AUD_REQST_TEL, T.AUD_REQST_GEN, T.IHIDNUM, T.AUD_REQST_ADD
+		,
+		T.AUD_REQST_DT, T.FILE_GROUP_NO, T.AUD_REQST_DTLS, T.AUD_REQST_PATH
+		,
+		T.AUD_REQST_STATE
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+			ORDER BY AG.AUD_REQST_NO
+			desc
+		) AS RNUM
+		, A.AUD_NO, A.AUD_NM, A.AUD_DATE, A.AUD_DTLS, A.AUD_LC
+		,
+		A.AUD_TYPE
+		, AG.AUD_REQST_NO, AG.AUD_REQST_NM, AG.AUD_REQST_PW
+		,
+		AG.AUD_REQST_TEL, AG.AUD_REQST_GEN, AG.IHIDNUM, AG.AUD_REQST_ADD
+		,
+		AG.AUD_REQST_DT, AG.FILE_GROUP_NO, AG.AUD_REQST_DTLS,
+		AG.AUD_REQST_PATH
+		, AG.AUD_REQST_STATE
+
+		FROM AUDITION_REQST AG
+		LEFT OUTER
+		JOIN AUDITION A ON
+		A.AUD_NO = AG.AUD_NO
+
+		WHERE 1 = 1
+		<if test="keyword!=null and keyword!=''">
+			AND(
+			AG.AUD_REQST_NM LIKE '%' || #{keyword} || '%'
+
+			)
+		</if>
+		<if test="type == 0">
+<!-- 			AND A.AUD_DATE &gt; SYSDATE -->
+            <![CDATA[AND AUD_DATE < SYSDATE 		]]>
+
+		</if>
+		<if test="type == 1">
+<!-- 			AND (A.AUD_DATE &lt; SYSDATE -->
+<!-- 						OR A.AUD_DATE IS NULL) -->
+            <![CDATA[
+            AND (A.AUD_DATE > SYSDATE
+						OR A.AUD_DATE IS NULL)
+						]]>
+
+		</if>
+		<if test="searchNo !=null and searchNo !=''">
+		AND A.AUD_NO=#{searchNo}
+				</if>
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+</select>
+
+<select id="getAudList" resultType="kr.or.ddit.vo.AuditionVO">
+
+ SELECT
+    aud_no
+  , aud_nm
+  , aud_date
+  , aud_dtls
+  , aud_lc
+  , file_group_no
+  , aud_type
+  , aud_auddate
+  , aud_check
+FROM
+    audition
+WHERE AUD_CHECK=0
+
+
+</select>
+
+<insert id="audReqstInsert" parameterType="kr.or.ddit.vo.AuditionReqstVO">
+<selectKey resultType="int" order="BEFORE"
+			keyProperty="audReqstNo">
+			SELECT NVL(MAX(aud_reqst_no),0)+1 FROM audition_reqst
+		</selectKey>
+INSERT INTO audition_reqst (
+    aud_reqst_no
+    , aud_no
+    , aud_reqst_nm
+    , aud_reqst_pw
+    , aud_reqst_tel
+    , aud_reqst_gen
+    , ihidnum
+    , aud_reqst_add
+    , aud_reqst_dt
+    , file_group_no
+    , aud_reqst_dtls
+    , aud_reqst_path
+    , aud_reqst_state
+    , aud_reqst_email
+) VALUES ( #{audReqstNo}
+         , #{audNo}
+         , #{audReqstNm}
+         , #{audReqstPw}
+         , #{audReqstTel}
+         , #{audReqstGen}
+         , null
+         , #{audReqstAdd}
+         , sysdate
+         , #{fileGroupNo}
+         , #{audReqstDtls}
+         , null
+         , 0
+         , #{audReqstEmail}
+         )
+</insert>
+
+<!-- 모든 굿즈 리스트 가져오기 -->
+<select id="getAllGoods" resultMap="goodsMap">
+    SELECT
+    G.GDS_NO,
+    G.CTGRY_NO,
+    G.GDS_NM,
+    G.GDS_PRICE,
+    G.FILE_GROUP_NO,
+    G.GDS_DC,
+    G.MEM_ID,
+    G.GDS_DATE,
+    GC.GDS_CTGRY_NM AS CATEGORY_NAME,  -- 컬럼명 수정
+    FG.FILE_SAVE_LOCATE  -- 이미지 경로
+FROM GOODS G
+LEFT JOIN GDS_CTGRY GC ON G.CTGRY_NO = GC.GDS_CTGRY_NO  -- 카테고리 조인
+LEFT JOIN FILE_DETAIL FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+    AND FG.FILE_SN = 1  -- 대표 이미지만 가져오도록 수정 (필요시)
+ORDER BY G.GDS_DATE DESC
+
+</select>
+
+
+<select id="getCategoryList" resultType="GoodsVO">
+    SELECT GDS_CTGRY_NO, GDS_CTGRY_NM AS CATEGORY_NAME
+FROM GDS_CTGRY
+GROUP BY GDS_CTGRY_NO, GDS_CTGRY_NM
+ORDER BY GDS_CTGRY_NM ASC
+
+</select>
+
+<select id="getGoodsByNo" parameterType="int" resultMap="goodsMap">
+    SELECT
+        G.GDS_NO, G.CTGRY_NO, G.GDS_NM, G.GDS_PRICE, G.FILE_GROUP_NO,
+        G.GDS_DC, G.MEM_ID, G.GDS_DATE, GC.GDS_CTGRY_NM AS CATEGORY_NAME,
+        FG.FILE_SAVE_LOCATE
+    FROM GOODS G
+    LEFT JOIN GDS_CTGRY GC ON G.CTGRY_NO = GC.GDS_CTGRY_NO
+    LEFT JOIN FILE_DETAIL FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+    WHERE G.GDS_NO = #{gdsNo}
+</select>
+
+<select id="getReqstDetail" parameterType="kr.or.ddit.vo.AuditionReqstVO" resultMap="audReqMap">
+SELECT
+		    AR.AUD_REQST_NO
+		  , AR.AUD_NO
+		  , AR.AUD_REQST_NM
+		  , AR.AUD_REQST_PW
+		  , AR.AUD_REQST_TEL
+		  , AR.AUD_REQST_GEN
+		  , AR.IHIDNUM
+		  , AR.AUD_REQST_ADD
+		  , AR.AUD_REQST_DT
+		  , AR.FILE_GROUP_NO
+		  , AR.AUD_REQST_DTLS
+		  , AR.AUD_REQST_PATH
+		  , AR.AUD_REQST_STATE
+		  , AR.AUD_REQST_EMAIL
+		  , A.AUD_NO, A.AUD_TYPE, A.AUD_NM, A.AUD_LC
+		  , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		  , FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		  , FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM
+		    AUDITION_REQST AR
+		        LEFT OUTER JOIN AUDITION A ON A.AUD_NO = AR.AUD_NO
+		        LEFT OUTER JOIN FILE_GROUP FG ON FG.FILE_GROUP_NO = AR.FILE_GROUP_NO
+				LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE AR.AUD_REQST_NO= #{audReqstNo}
+</select>
+
+<delete id="audReqstDetailDel" parameterType="kr.or.ddit.vo.AuditionReqstVO">
+    DELETE FROM audition_reqst
+WHERE
+        aud_reqst_no = #{audReqstNo}
+</delete>
+</mapper>
+

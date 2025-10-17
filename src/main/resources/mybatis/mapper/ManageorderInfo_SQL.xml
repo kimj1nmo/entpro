@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.manageshop.ManageOrderInfoMapper">
+
+    <!-- 주문 정보, 주문 리스트, 회원 정보, 상품 정보를 조인하여 조회 -->
+    <select id="selectAllOrders" resultType="kr.or.ddit.vo.OrderInfoVO">
+        SELECT 
+            oi.ORDER_NO, 
+            oi.ORDER_DATE, 
+            oi.ORDER_TOTAL_AMOUNT, 
+            oi.ORDER_ADD AS orderAddress, 
+            oi.MEM_ID, 
+            oi.ORDER_NAME, 
+            oi.USER_PHONE, 
+            oi.ORDER_CHANGE_NO,
+            -- ✅ 회원 정보 추가
+            m.MEM_NAME, 
+            m.MEM_TEL,
+            -- ✅ 주문 리스트 정보
+            ol.GDS_NO AS gdsNo,  
+            ol.ORDER_LIST_QY AS orderListQy,  
+            -- ✅ 상품 정보 추가
+            g.GDS_NM AS gdsName,
+            g.GDS_PRICE AS gdsPrice
+        FROM ORDER_INFO oi  
+        LEFT JOIN ORDER_LIST ol ON oi.ORDER_NO = ol.ORDER_NO
+        LEFT JOIN MEMBER m ON oi.MEM_ID = m.MEM_ID
+        LEFT JOIN GOODS g ON ol.GDS_NO = g.GDS_NO
+        ORDER BY oi.ORDER_NO DESC
+    </select>
+    
+    <!-- ✅ 주문 상태 업데이트 쿼리 -->
+    <update id="updateOrderChangeNo">
+        UPDATE ORDER_INFO
+        SET ORDER_CHANGE_NO = #{orderChangeNo} 
+        WHERE ORDER_NO = #{orderNo}
+    </update>
+
+</mapper>

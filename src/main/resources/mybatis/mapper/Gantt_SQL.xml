@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.GanttMapper">
+
+	<!-- 해당 간트차트 리스트 -->
+	<resultMap type="kr.or.ddit.vo.ProjectVO" id="projectMap">
+		<result property="proNo" column="PRO_NO"/>
+		<result property="proTtl" column="PRO_TTL"/>
+		<result property="proManager" column="PRO_MANAGER"/>
+		<result property="proRegDate" column="PRO_REG_DATE"/>
+<!-- 		<result property="proStartDate" column="PRO_START_DATE"/> -->
+<!-- 		<result property="proEndDate" column="PRO_END_DATE"/> -->
+		<result property="proDeadline" column="PRO_DEADLINE"/>
+		<result property="proComment" column="PRO_COMMENT"/>
+		<result property="minusDuration" column="MINUS_DURATION"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<collection property="ganttVOList" resultMap="ganttMap"></collection>
+	</resultMap>
+	
+	<resultMap type="kr.or.ddit.vo.GanttVO" id="ganttMap">
+		<result property="ganttChartsNo" column="GANTT_CHARTS_NO"/>
+		<result property="proJobNm" column="PRO_JOB_NM"/>
+		<result property="proStartDate" column="PRO_START_DATE"/>
+		<result property="proEndDate" column="PRO_END_DATE"/>
+		<result property="proProgrsRt" column="PRO_PROGRS_RT"/>
+		<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+		<result property="proColor" column="PRO_COLOR"/>
+		<result property="proDuration" column="PRO_DURATION"/>
+		<result property="proYn" column="PRO_YN"/>
+		<result property="projectNo" column="PROJECT_NO"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="memName" column="MEM_NAME"/>
+		<association property="projectEmpVOList" resultMap="empMap"></association>
+	</resultMap>
+	<!-- 
+	PROJECT : PROJECT_GANTTCHARTS = 1 : N
+	 -->
+	<resultMap type="kr.or.ddit.vo.ProjectEmpVO" id="empMap">
+		<result property="memName" column="MEM_NAME"/>
+		<result property="memId" column="MEM_ID"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="regDate" column="REG_DATE"/>
+	</resultMap>
+	
+	<select id="ganttDetail" parameterType="hashMap" resultMap="projectMap">
+		SELECT 
+		       P.PRO_NO AS PROJECT_NO, 
+		       P.PRO_TTL, 
+		       P.PRO_REG_DATE, 
+		       P.PRO_DEADLINE,
+		       TRUNC(P.PRO_DEADLINE - P.PRO_REG_DATE) MINUS_DURATION,
+		       PG.GANTT_CHARTS_NO, 
+		       PG.PRO_JOB_NM, 
+		       PG.PRO_START_DATE, 
+		       PG.PRO_END_DATE, 
+		       PG.PRO_PROGRS_RT, 
+		       PG.PRO_COLOR, 
+		       PG.PRO_DURATION,
+		       PG.MEM_ID ,
+		       PE.MEM_NAME
+		FROM PROJECT P
+		JOIN PROJECT_GANTTCHARTS PG ON(P.PRO_NO = PG.PRO_NO)
+		LEFT OUTER JOIN PROJECT_EMP PE ON(PG.MEM_ID = PE.MEM_ID)
+		WHERE P.PRO_NO = #{id}
+		AND PG.PRO_YN = 1
+		ORDER BY PRO_START_DATE, PRO_JOB_NM
+	</select>
+	
+	
+	<!-- 포워딩용 -->
+	<select id="list" parameterType="int" resultMap="projectMap">
+		SELECT
+		      P.PRO_NO, P.PRO_TTL, P.PRO_MANAGER, P.PRO_COMMENT, P.PRO_REG_DATE, P.PRO_DEADLINE
+		    , PG.GANTT_CHARTS_NO, PE.MEM_NAME
+		FROM PROJECT P
+		LEFT OUTER JOIN PROJECT_GANTTCHARTS PG ON(P.PRO_NO = PG.PRO_NO)
+		JOIN PROJECT_EMP PE ON(PG.MEM_ID = PE.MEM_ID)
+		WHERE P.PRO_NO = #{proNo}
+	</select>
+
+	<!-- 비동기 생성 -->
+	<insert id="createGantt" parameterType="kr.or.ddit.vo.GanttVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="ganttChartsNo">
+			SELECT NVL(MAX(GANTT_CHARTS_NO),0)+1 FROM PROJECT_GANTTCHARTS
+		</selectKey>
+		INSERT INTO PROJECT_GANTTCHARTS (
+		    GANTT_CHARTS_NO
+		    <if test="proNo!=null and proNo!=''">
+		    , PRO_NO
+		    </if>
+		    , PRO_JOB_NM
+		    <if test="proStartDate!=null and proStartDate!=''">
+		    , PRO_START_DATE
+		    </if>
+		    <if test="proEndDate!=null and proEndDate!=''">
+		    , PRO_END_DATE
+		    </if>
+		    <if test="proProgrsRt!=null and proProgrsRt!=''">
+		    , PRO_PROGRS_RT
+		    </if>
+		    <if test="proDuration!=null and proDuration!=''">
+		    , PRO_DURATION
+		    </if>
+		    , PRO_COLOR
+		    , MEM_ID
+		) VALUES (
+		    #{ganttChartsNo}
+		    <if test="proNo!=null and proNo!=''">
+		    , #{proNo}
+		    </if>
+		    , #{proJobNm}
+		    <if test="proStartDate!=null and proStartDate!=''">
+		    , #{proStartDate}
+		    </if>
+		    <if test="proEndDate!=null and proEndDate!=''">
+		    , #{proEndDate}
+		    </if>
+		    <if test="proProgrsRt!=null and proProgrsRt!=''">
+		    , #{proProgrsRt}
+		    </if>
+		    <if test="proDuration!=null and proDuration!=''">
+		    , #{proDuration}
+		    </if>
+		    , #{proColor}
+		    , #{memId}
+		)
+	</insert>
+
+	<!-- 비동기 삭제 -->
+	<update id="deleteGantt" parameterType="kr.or.ddit.vo.GanttVO">
+		UPDATE PROJECT_GANTTCHARTS
+		SET PRO_YN = #{proYn}
+		WHERE GANTT_CHARTS_NO = #{ganttChartsNo}
+	</update>
+	
+	<!-- 비동기 수정 -->
+	<!-- <if test="proStartDate!=null and proStartDate!=''"> -->
+	<update id="putGantt" parameterType="kr.or.ddit.vo.GanttVO">
+		UPDATE PROJECT_GANTTCHARTS
+		SET
+				<if test="proNo!=null and proNo!=''">
+		        PRO_NO             = #{proNo}
+		        </if>
+		        <if test="proJobNm!=null and proJobNm!=''">
+		        , PRO_JOB_NM       = #{proJobNm}
+		        </if>
+		        <if test="proStartDate!=null and proStartDate!=''">
+		        , PRO_START_DATE   = #{proStartDate}
+		        </if>
+		        <if test="proEndDate!=null and proEndDate!=''">
+		        , PRO_END_DATE     = #{proEndDate}
+		        </if>
+		        <if test="proProgrsRt!=null and proProgrsRt!=''">
+		        , PRO_PROGRS_RT    = #{proProgrsRt}
+		        </if>
+		        <if test="proColor!=null and proColor!=''">
+		        , PRO_COLOR        = #{proColor}
+		        </if>
+		        <if test="proDuration!=null and proDuration!=''">
+		        , PRO_DURATION     = #{proDuration}
+		        </if>
+		        <if test="memId!=null and memId!=''">
+		        , MEM_ID		   = #{memId}
+		        </if>
+		WHERE GANTT_CHARTS_NO = #{ganttChartsNo}
+	</update>
+
+	<!-- 담당자 불러오기 -->
+	<select id="getManager" parameterType="kr.or.ddit.vo.ProjectEmpVO" resultType="kr.or.ddit.vo.ProjectEmpVO">
+		SELECT PE.PRO_NO, PE.MEM_NAME, PE.MEM_ID
+            ,  PG.GANTT_CHARTS_NO
+		FROM PROJECT_EMP PE LEFT OUTER JOIN PROJECT_GANTTCHARTS PG ON(PE.MEM_ID =PG.MEM_ID)
+	</select>
+	
+	<!-- 캘린더 전체일정 -->
+<!-- 	<select id="getEmpCalendar" resultType="kr.or.ddit.vo.GanttVO"> -->
+<!-- 		SELECT GANTT_CHARTS_NO, PRO_NO, PRO_JOB_NM, PRO_START_DATE, PRO_END_DATE, PRO_PROGRS_RT, PRO_FILE_NO -->
+<!-- 			   , PRO_COLOR, PRO_DURATION, PRO_YN, MEM_ID -->
+<!-- 		FROM PROJECT_GANTTCHARTS -->
+<!-- 	</select> -->
+	
+	<!-- 특정 캘린더 -->
+<!-- 	<select id="empCalendar" parameterType="kr.or.ddit.vo.GanttVO" resultType="kr.or.ddit.vo.GanttVO"> -->
+<!-- 		SELECT GANTT_CHARTS_NO, PRO_NO, PRO_JOB_NM, PRO_START_DATE, PRO_END_DATE, PRO_PROGRS_RT, PRO_FILE_NO -->
+<!-- 			   , PRO_COLOR, PRO_DURATION, PRO_YN, MEM_ID -->
+<!-- 		FROM PROJECT_GANTTCHARTS -->
+<!-- 		WHERE PRO_NO = #{proNo} -->
+<!-- 	</select> -->
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

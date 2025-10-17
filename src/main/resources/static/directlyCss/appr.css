@@ -1,0 +1,333 @@
+@charset "UTF-8";
+#wrapper{
+	margin-left: 3%;
+}
+tr{
+	border: 1px solid #ddd;
+}
+td{
+	border: 1px solid #ddd;
+	display: table-cell;
+	vertical-align: inherit;
+	unicode-bidi: isolate;
+	padding: 6px 12px;
+}
+
+#content{
+	width: 120vh;
+}
+#approval_document_title{
+	width: 120vh;
+	height: 40px;
+	border: 1px solid #ddd; 
+	margin: 20px;
+	margin-left:0;
+	margin-top: 0;
+}
+
+#team{
+	height: 40px;
+	text-align: center;
+	background-color: whitesmoke;
+}
+#name{
+	height: 40px;
+	text-align: center;
+}
+.ref_ttl{
+	text-align : center;
+	background-color: whitesmoke;
+}
+#stamp{
+	height: 80px;
+}
+#container {
+	width: 120vh;
+}
+.ck-editor__editable[role="textbox"] {
+	/* Editing area */
+	min-height: 200px;
+	height: 200px;
+}
+.ck-content .image {
+	/* Block images */
+	max-width: 80%;
+}
+#rowFlex {
+	display: flex;
+	justify-content: space-between; /* div들 사이 간격을 동일하게 */
+	width: 100%;
+	height: auto;
+}
+#searchEmp{
+        position: relative;
+        display: inline-block;
+}
+#searchEmp input{
+        padding-right: 30px; /* 오른쪽 여백을 두어 아이콘 공간을 확보 */
+        padding-left: 10px;  /* 왼쪽 여백 */
+        height: 30px;        /* 높이 설정 */
+        font-size: 14px;      /* 폰트 크기 설정 */
+}
+#addrNames{
+	border: 2px solid #ddd;
+	padding: 20px;
+	width: 35vh;
+	height: 75vh; /* 내용에 따라 조정 */
+}
+#schBox{
+	border: 1px solid #ddd; padding-right: 24px; padding-left: 8px; width: 100%; box-sizing: border-box;
+}
+#aplBtn{
+	display: flex; flex-direction: column; align-items: right; gap: 5px;
+}
+#aplTextarea{
+	border: 1px solid #ddd; height: 53vh; width: 50vh;
+}
+#aplRef{
+	border: 1px solid #ddd;
+	height: 15vh;
+}
+#right{
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 80vh;
+}
+#right div{
+	border: 2px solid #ddd;
+	padding: 20px;
+	width: 100%;
+	text-align: center;
+}
+.search-icon {
+        position: absolute;
+        right: 10px;          /* 오른쪽 끝에 위치 */
+        top: 50%;
+        transform: translateY(-50%); /* 세로 가운데 정렬 */
+        cursor: pointer;
+}
+.refresh-icon {
+        margin-left: 10px; /* 두 아이콘 사이에 간격을 추가 */
+        cursor: pointer;
+}
+#p_cert{
+	font-size: 18px;
+	font-weight: bold;
+	display: inline-block;
+	color: #676767;
+}
+#p_cert_p{
+	padding: 10px;
+}
+#cert_table tr , #cert_table td{
+	border: 0;
+}
+#cert_table{
+	width: 120vh;
+}
+#certCn{
+	width: 80%;
+}
+.p_cert_pl{
+	width: 60%;
+	height: 35px;
+	border: 1px solid #ddd;
+}
+.p_cert_da{
+	width: 20%;
+	height: 35px;
+	border: 1px solid #ddd;
+}
+.p_cert_us{
+	width: 80%;
+	height: 35px;
+	border: 1px solid #ddd;
+}
+.ref_in{
+	background-color: whitesmoke;
+	height: 35px;
+	border: 1px solid #ddd;
+	text-align: left !important;
+}
+.addr_select{
+	margin-left: 10px;
+	background-color: #fff;
+	border:0;
+	color: Darkturquoise;
+	font-style: bold;
+}
+#formSelect, #securityLevel, #preservedTerm{
+	height: 30px;
+	width: 80%;
+	border: 1px solid #ddd;
+}
+.modal_btn{
+	margin: 5px;
+	height: 50px;
+	background-color: whitesmoke;
+	border: 1px solid #ddd;
+}
+
+
+
+.modal-body {
+		display: flex;
+		gap: 20px;
+		font-family: Arial, sans-serif;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+.left-container {
+		border: 1px solid black;
+		padding: 10px;
+		width: 40vh;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+.input-container {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+}
+.divs-container {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+.div-box {
+		border: 1px solid black;
+		width: 60vh;
+		height: 18vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+.btn-column {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+.btn-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		overflow-y: auto; max-height: 100%; max-width: 100%;
+}
+#modal_p{
+	font-size: 18px;
+	font-weight: bold;
+	/* overflow-y: auto; max-height: 100%; max-width: 100%; */
+}
+#searchEmp{
+	border: 1px solid #ddd;
+	width: 30vh;
+	/* overflow-y: auto; max-height: 100%; max-width: 100%; */
+}
+.team{
+	height: 40px;
+	text-align: center;
+	background-color: whitesmoke;
+}
+.name{
+	height: 40px;
+	text-align: center;
+}
+
+.stamp{
+	height: 80px;
+	text-align: center; vertical-align: bottom;
+}
+.ref_in{
+	background-color: whitesmoke;
+	height: 35px;
+	border: 1px solid #ddd;
+	text-align: left !important;
+}
+.app_date{
+	font-size: 12px;
+}
+.app_area{
+	width: 120vh;
+	height: 30vh;
+}
+.app_ttl{
+	font-size: 32px;
+	margin: 0;
+	padding: 1px;
+}
+.app_contents{
+	padding: 2vh;
+}
+
+#tbTtl {
+  text-align: center;
+  background-color: whitesmoke;
+  padding-top: 10px; 
+  padding-bottom: 10px; 
+  margin: 50px;
+}
+#tbCn{
+  padding-left: 10px;
+  margin:50px;
+  text-align : center;
+  vertical-align : middle;
+}
+
+.team{
+	height: 40px;
+	text-align: center;
+	background-color: whitesmoke;
+}
+.name{
+	height: 40px;
+	text-align: center;
+}
+
+.stamp{
+	height: 80px;
+	text-align: center; vertical-align: bottom;
+}
+.ref_in{
+	background-color: whitesmoke;
+	height: 35px;
+	border: 1px solid #ddd;
+	text-align: left !important;
+}
+.app_date{
+	font-size: 12px;
+	margin-bottom:0;
+}
+.app_area{
+	width: 120vh;
+	height: 30vh;
+}
+.app_ttl{
+	font-size: 32px;
+	margin: 0;
+	padding: 1px;
+	padding-bottom: 20px;
+}
+.app_contents{
+	padding: 2vh;
+}
+
+#tbTtl {
+  text-align: center;
+  background-color: whitesmoke;
+  padding-top: 10px; 
+  padding-bottom: 10px; 
+  margin: 50px;
+}
+#tbCn{
+  padding-left: 10px;
+  margin:50px;
+}
+.comment_area{
+	width: 90vh;
+	padding-left: 20px;
+}

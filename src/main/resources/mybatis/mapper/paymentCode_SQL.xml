@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.shop.mapper.PaymentCodeMapper">
+
+
+<!-- 생성문 -->
+<insert id="insertPaymentCode">
+    INSERT INTO PAYMENT_CODE (
+        PAYCO_NO,
+        PAYCO_NM
+    ) VALUES (
+        payco_seq.NEXTVAL,
+        #{paycoNm}
+    )
+</insert>
+
+
+</mapper>

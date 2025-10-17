@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.comm.membership.MembershipMapper">
+
+ <!-- COMM_REG_NO 가져오기 -->
+    <select id="getCommRegNo" parameterType="kr.or.ddit.vo.MembershipVO" resultType="int">
+        SELECT comm_reg_no
+        FROM community_regdata
+        WHERE group_no = #{groupNo}
+          AND mem_id = #{memId}
+    </select>
+
+    <!-- MEMSHIP_NO 및 MEMSHIP_PAY_AMOUNT 가져오기 -->
+    <select id="getMembershipDetails" parameterType="int" resultType="kr.or.ddit.vo.MembershipVO">
+        SELECT 
+            m.memship_no AS memshipNo,
+            m.memship_amount AS memshipAmount
+        FROM 
+            memship m
+        WHERE 
+            m.group_no = #{groupNo}
+    </select>
+
+    <!-- MEMSHIP_DATA INSERT -->
+    <insert id="insertMembershipData" parameterType="kr.or.ddit.vo.MembershipVO">
+        <selectKey resultType="int" order="BEFORE" keyProperty="memshipDataNo">
+            SELECT MEMSHIP_DATA_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO memship_data (
+            memship_data_no,
+            memship_no,
+            comm_reg_no,
+            memship_start_date,
+            memship_end_date,
+            memship_yn,
+            memship_pay_amount
+        ) VALUES (
+            #{memshipDataNo},
+            #{memshipNo},
+            #{commRegNo},
+            SYSDATE,
+            SYSDATE + 30,
+            1,
+            #{memshipPayAmount}
+        )
+    </insert>
+
+    <!-- VIRTUAL_CRRNCY 업데이트
+    <update id="updateVirtualCurrency" parameterType="map">
+        UPDATE vrtual_crrncy
+        SET 
+            vrtual_crrncy_use = vrtual_crrncy_use - #{amount}
+        WHERE 
+            mem_id = #{memId};
+    </update>
+     -->
+     <insert id="insertVirtualCurrency" parameterType="kr.or.ddit.vo.MembershipVO">
+     <selectKey resultType="int" order="BEFORE" keyProperty="vrtualCrrncyNo">
+         SELECT VRTUAL_CRRNCY_SEQ.NEXTVAL FROM DUAL
+     </selectKey>
+	    INSERT INTO VRTUAL_CRRNCY (
+		      VRTUAL_CRRNCY_NO
+		    , MEM_ID
+		    , VRTUAL_CRRNCY_USE
+		    , VRTUAL_CRRNCY_GHGE
+		    ) 
+	    VALUES (
+		      #{vrtualCrrncyNo}
+		    , #{memId}
+		    , #{vrtualCrrncyUse}
+		    , SYSDATE
+	   	 )
+		</insert>
+
+    <!-- 잔액 확인 -->
+    <select id="checkVirtualCurrencyBalance" parameterType="String" resultType="int">
+	 SELECT 
+	        NVL(SUM(vrtual_crrncy_use), 0) AS total_balance
+	    FROM 
+	        vrtual_crrncy
+	    WHERE 
+	        mem_id = #{memId}
+    </select>
+
+	<select id="isMembershipActive" parameterType="kr.or.ddit.vo.CommunityVO" resultType="boolean">
+    SELECT CASE 
+        WHEN COUNT(*) > 0 THEN 1
+        ELSE 0
+    END
+    FROM memship_data md
+    JOIN community_regdata cr ON md.comm_reg_no = cr.comm_reg_no
+    WHERE cr.group_no = #{groupNo}
+      AND cr.mem_id = #{memId}
+      AND (md.memship_yn = 1 OR md.memship_end_date > SYSDATE)
+</select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.mypage.mypageMapper">
+
+<resultMap type="kr.or.ddit.vo.GroupsVO" id="groupMap">
+		<result property="groupNo" column="GROUP_NO" />
+		<result property="groupName" column="GROUP_NAME" />
+		<result property="groupBirth" column="GROUP_BIRTH" />
+		<result property="groupDspgn" column="GROUP_DSPGN" />
+		<result property="groupIntrcn" column="GROUP_INTRCN" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="groupBirthInputter" column="GROUP_BIRTH_INPUTTER"/>
+		<result property="groupDspgnInputter" column="GROUP_DSPGN_INPUTTER"/>
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+
+	</resultMap>
+
+
+
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+<!--
+	//정보 가져오기
+		MemberVO myProfileAjax(String memId);
+		 -->
+<select id="myProfileAjax" parameterType="String" resultType="kr.or.ddit.vo.MemberVO">
+SELECT
+    MEM_ID
+  , MEM_ENABLE
+  , MEM_NAME
+  , MEM_GENDER
+  , MEM_REG_DATE
+  , MEM_EMAIL
+  , FILE_GROUP_NO
+  , MEM_TEL
+  , ADD_NO
+FROM
+    MEMBER
+    WHERE MEM_ID=#{memId}
+</select>
+<!--
+// 가입 총 커뮤니티 갯수 가져오기
+	int getCommTotal(Map<String, Object> map);
+ -->
+<select id="getCommTotal" parameterType="hashMap" resultType="int">
+SELECT
+   COUNT(*)
+FROM
+    COMMUNITY_REGDATA
+    WHERE MEM_ID=#{memId}
+</select>
+<!--
+// 가입 총 맴버쉽 갯수 가져오기
+	int getMemshipTotal(Map<String, Object> map);
+	 -->
+<select id="getMemshipTotal" parameterType="hashMap" resultType="int">
+SELECT COUNT(DISTINCT MD.MEMSHIP_NO || '-' || MD.COMM_REG_NO)
+FROM MEMSHIP_DATA MD
+left join COMMUNITY_REGDATA CR ON MD.COMM_REG_NO=CR.COMM_REG_NO
+    WHERE CR.MEM_ID=#{memId}
+</select>
+<select id="getCommList" parameterType="hashMap" resultMap="groupMap">
+
+SELECT
+		T.RNUM
+		,T.GROUP_NO
+        ,T.GROUP_NAME
+        ,T.GROUP_BIRTH
+        ,T.GROUP_DSPGN
+        ,T.GROUP_INTRCN
+        ,T.FILE_GROUP_NO
+        ,T.COMM_REG_NO
+        ,T.COMM_REG_JOIN
+        ,T.COMM_REG_NICK
+        ,T.MEM_ID
+        	, T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		, T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT,T.FILE_MIME
+		, T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+        order by COMM_REG_JOIN
+		) AS RNUM
+        ,g.GROUP_NO
+        ,g.GROUP_NAME
+        ,g.GROUP_BIRTH
+        ,g.GROUP_DSPGN
+        ,g.GROUP_INTRCN
+        ,g.FILE_GROUP_NO
+        ,CR.COMM_REG_NO
+        ,CR.COMM_REG_JOIN
+        ,CR.COMM_REG_NICK
+        ,CR.MEM_ID
+
+        , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		 FROM
+        COMMUNITY_REGDATA CR
+    JOIN
+        groups g
+    ON
+        g.group_no = CR.group_no
+        LEFT OUTER JOIN FILE_GROUP FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+	LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    WHERE
+        CR.MEM_ID = #{memId}
+
+
+
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{page} * 4) -
+		(4 - 1) AND
+		(#{page} *
+		4)
+
+</select>
+
+<select id="getMemShipList" parameterType="hashMap" resultMap="groupMap">
+        WITH membership AS (
+  SELECT
+    MD.memship_data_no
+    , MD.memship_no
+    , MD.comm_reg_no
+    , MD.memship_start_date
+    , MD.memship_end_date
+    , MD.memship_yn
+    , M.GROUP_NO, M.MEMSHIP_NM, M.MEMSHIP_AMOUNT
+    , g.GROUP_NAME, g.GROUP_BIRTH, g.GROUP_DSPGN, g.GROUP_INTRCN, g.FILE_GROUP_NO
+       , FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+    , ROW_NUMBER() OVER (PARTITION BY MD.memship_no, MD.comm_reg_no ORDER BY MD.memship_data_no desc) AS rn
+    ,		ROW_NUMBER() OVER (ORDER BY m.GROUP_NO desc) rnum
+  FROM
+    memship_data MD
+    JOIN MEMSHIP M ON M.memship_no = MD.memship_no
+    JOIN COMMUNITY_REGDATA CR ON CR.COMM_REG_NO = MD.COMM_REG_NO
+    JOIN groups g ON g.group_no = CR.group_no
+       LEFT OUTER JOIN FILE_GROUP FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+	LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+  WHERE
+    MEM_ID = #{memId}
+)
+SELECT
+  memship_data_no
+  , memship_no
+  , comm_reg_no
+  , memship_start_date
+  , memship_end_date
+  , memship_yn
+  , GROUP_NO
+  , MEMSHIP_NM
+  , MEMSHIP_AMOUNT
+  , GROUP_NAME
+  , GROUP_BIRTH
+  , GROUP_DSPGN
+  , GROUP_INTRCN
+  , FILE_GROUP_NO
+     , FILE_REGDATE, FILE_SN, FILE_ORIGINAL_NAME, FILE_SAVE_NAME
+		, FILE_SAVE_LOCATE, FILE_SIZE, FILE_EXT,FILE_MIME
+		, FILE_FANCYSIZE, FILE_SAVE_DATE, FILE_DOWNCOUNT
+        ,rn
+FROM membership
+WHERE
+rn = 1 and
+rnum BETWEEN (#{page} * 4) - (4 - 1) AND (#{page}  * 4)
+</select>
+<!-- 주소 리스트 가져오기 -->
+<select id="addressList" parameterType="kr.or.ddit.vo.MemberVO" resultType="kr.or.ddit.vo.AddressVO">
+		SELECT
+		    ADD_NO
+		  , MEM_ID
+		  , ADD_NAME
+		  , ADD_ZIP
+		  , ADD_1
+		  , ADD_2
+		  , ADD_DATE
+		  , SN
+		  , ADD_TEL
+		FROM
+		    ADDRESS
+		    WHERE MEM_ID=#{memId}
+</select>
+<insert id="addAddressAjax" parameterType="kr.or.ddit.vo.AddressVO">
+	<selectKey resultType="int" order="BEFORE"
+			keyProperty="sn">
+         			SELECT NVL(MAX(sn),0)+1 FROM address
+                    where mem_Id=#{memId}
+                    		</selectKey>
+				INSERT INTO address (
+				    add_no
+				    , mem_id
+				    , add_name
+				    , add_zip
+				    , add_1
+				    , add_2
+				    , add_date
+				    , sn
+				    , add_tel
+				) VALUES ( #{addNo}
+				         , #{memId}
+				         , #{addName}
+				         , #{addZip}
+				         , #{add1}
+				         , #{add2}
+				         , sysdate
+				         , #{sn}
+				         , #{addTel} )
+</insert>
+<select id="addressDetail" parameterType="hashMap" resultType="kr.or.ddit.vo.AddressVO">
+SELECT
+    ADD_NO
+  , MEM_ID
+  , ADD_NAME
+  , ADD_ZIP
+  , ADD_1
+  , ADD_2
+  , ADD_DATE
+  , SN
+  , ADD_TEL
+FROM
+    ADDRESS
+WHERE ADD_NO=#{addNo}
+	AND SN=#{sn}
+
+</select>
+<update id="UpdateAddressAjax" parameterType="kr.or.ddit.vo.AddressVO">
+
+UPDATE ADDRESS
+    SET
+        ADD_NAME = #{addName},
+        ADD_ZIP = #{addZip},
+        ADD_1 = #{add1},
+        ADD_2 = #{add2},
+        ADD_TEL = #{addTel}
+    WHERE
+        ADD_NO = #{addNo}
+        AND SN = #{sn}
+</update>
+
+<delete id="addressDelAjax" parameterType="kr.or.ddit.vo.AddressVO">
+DELETE FROM ADDRESS
+WHERE
+       ADD_NO = #{addNo}
+        AND SN = #{sn}
+</delete>
+<!-- memProfileUpdat 개인정보 수정 -->
+<update id="memProfileUpdat" parameterType="hashMap">
+UPDATE MEMBER
+SET
+      MEM_PW= #{memPw}
+    , MEM_NAME= #{memName}
+    , MEM_GENDER= #{memGender}
+    , MEM_EMAIL= #{memEmail}
+    , MEM_TEL= #{memTel}
+WHERE
+        MEM_ID = #{memId}
+
+</update>
+<!--  맴버 지우기 -->
+<update id="deleteMemberAjax" parameterType="hashMap">
+UPDATE MEMBER
+SET
+     MEM_ENABLE='n'
+WHERE
+        MEM_ID = #{memId}
+
+</update>
+<select id="getMemberAddNO" parameterType="hashMap" resultType="kr.or.ddit.vo.MemberVO">
+SELECT
+    MEM_ID
+  , ADD_NO
+FROM
+    MEMBER
+    WHERE MEM_ID=#{memId}
+</select>
+
+<insert id="chargeCrrncy" parameterType="hashMap">
+<selectKey resultType="int" order="BEFORE"
+			keyProperty="vrtualCrrncyNo">
+         			SELECT NVL(MAX(VRTUAL_CRRNCY_NO),0)+1 FROM VRTUAL_CRRNCY
+                    		</selectKey>
+INSERT INTO VRTUAL_CRRNCY (
+    VRTUAL_CRRNCY_NO
+    , MEM_ID
+    , VRTUAL_CRRNCY_USE
+    , VRTUAL_CRRNCY_GHGE
+) VALUES ( #{vrtualCrrncyNo}
+         , #{memId}
+         , #{cost}
+         , SYSDATE )
+</insert>
+</mapper>

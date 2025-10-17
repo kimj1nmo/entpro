@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.managecomm.ManageCommMapper">
+
+<!-- 신고 처리 -->
+<update id="accessReport" parameterType="map">
+UPDATE comm_report 
+SET 
+	 COMM_REPORT_YN = '1'
+	, COMM_REPORT_AC_DT=SYSDATE
+ WHERE COMM_NO IN 
+    <foreach item="commNo" collection="commNos" open="(" separator="," close=")">
+        #{commNo}
+    </foreach>
+
+</update>
+
+
+	<select id="getGroupName" parameterType="int" resultType="String">
+	SELECT GROUP_NAME
+	FROM GROUPS
+	WHERE GROUP_NO=${groupNo}
+	</select>
+	
+	<select id="listAll" resultType="kr.or.ddit.vo.CommunityVO">
+SELECT 
+	cr.group_no,
+    c.COMM_NO,
+    c.GROUP_NO,
+    c.MEM_ID,
+    c.COMM_CN,
+    c.COMM_WRITE_DATE,
+    g.GROUP_NAME,
+    cr.COMM_REG_NICK
+FROM 
+    community c
+LEFT JOIN 
+    groups g ON c.GROUP_NO = g.GROUP_NO
+LEFT JOIN 
+    community_regdata cr ON c.GROUP_NO = cr.GROUP_NO AND c.MEM_ID = cr.MEM_ID
+ORDER BY 
+    c.COMM_WRITE_DATE DESC
+</select>
+	
+ <!-- 특정 그룹 게시글 조회 -->
+    <select id="listByGroupNo" parameterType="int" resultType="kr.or.ddit.vo.CommunityVO">
+        SELECT 
+            c.COMM_NO, c.GROUP_NO, c.COMM_CN, c.MEM_ID, c.COMM_WRITE_DATE,
+            cr.COMM_REG_NICK AS commRegNick, g.GROUP_NAME AS groupName
+        FROM 
+            community c
+        LEFT JOIN 
+            community_regdata cr ON c.GROUP_NO = cr.GROUP_NO AND c.MEM_ID = cr.MEM_ID
+        LEFT JOIN 
+            groups g ON c.GROUP_NO = g.GROUP_NO
+        WHERE 
+            c.GROUP_NO = #{groupNo}
+        ORDER BY 
+            c.COMM_WRITE_DATE DESC
+    </select>
+
+ <select id="getGroupsList" resultType="kr.or.ddit.vo.GroupsVO">
+        SELECT 
+            GROUP_NO, GROUP_NAME
+        FROM 
+            groups
+        ORDER BY 
+            GROUP_NAME ASC
+    </select>
+    
+    
+    
+	<select id="reportAll" resultType="kr.or.ddit.vo.CommReportVO">
+	SELECT 
+	    g.GROUP_NAME AS communityName, 
+	    c.COMM_CN AS postContent,    
+	    c.MEM_ID AS postAuthor,       
+	    r.COMM_REPORT_CN AS reportReason, 
+	    cr.COMM_REG_NICK AS reporterNick,
+	    r.MEM_ID AS reporterId,       
+	    r.COMM_REPORT_DT AS reportDate 
+	FROM 
+	    comm_report r
+	LEFT JOIN 
+	    community c ON r.COMM_NO = c.COMM_NO
+	LEFT JOIN 
+	    groups g ON c.GROUP_NO = g.GROUP_NO
+	LEFT JOIN 
+	    community_regdata cr ON r.MEM_ID = cr.MEM_ID AND c.GROUP_NO = cr.GROUP_NO
+	ORDER BY 
+	    r.COMM_REPORT_DT DESC
+	</select>
+	
+	<!-- 전체 신고된 게시글 조회 -->
+<select id="reportAllReportedPosts" resultType="kr.or.ddit.vo.CommReportVO">
+    SELECT 
+    g.GROUP_NAME AS communityName,       -- 커뮤니티명
+    c.COMM_NO AS commNo,            -- 게시글 내용
+    c.COMM_CN AS postContent,            -- 게시글 내용
+    c.MEM_ID AS postAuthor,              -- 글쓴이 아이디
+    cr_writer.COMM_REG_NICK AS postAuthorNick, -- 글쓴이 닉네임
+    r.MEM_ID AS memId,                   -- 신고자 아이디
+    r.COMM_REPORT_NO AS commReportNo,
+    r.COMM_REPORT_CN AS commReportCn,    -- 신고 사유
+    r.COMM_REPORT_YN AS commReportYn,    -- 처리 여부
+    r.COMM_REPORT_DT AS commReportDt,    -- 신고 일시
+    r.COMM_REPORT_AC AS commReportAc,    -- 조치 내용
+    r.COMM_REPORT_AC_DT AS commReportAcDt,    -- 조치 내용
+    cr_reporter.COMM_REG_NICK AS reporterNick -- 신고자 닉네임
+FROM 
+    comm_report r
+LEFT JOIN 
+    community c ON r.COMM_NO = c.COMM_NO
+LEFT JOIN 
+    groups g ON c.GROUP_NO = g.GROUP_NO
+LEFT JOIN 
+    community_regdata cr_reporter 
+    ON r.MEM_ID = cr_reporter.MEM_ID AND c.GROUP_NO = cr_reporter.GROUP_NO -- 신고자 닉네임
+LEFT JOIN 
+    community_regdata cr_writer 
+    ON c.MEM_ID = cr_writer.MEM_ID AND c.GROUP_NO = cr_writer.GROUP_NO -- 글쓴이 닉네임
+ORDER BY 
+    r.COMM_REPORT_DT DESC
+
+</select>
+
+	<!-- 그룹별 신고된 게시글 조회 -->
+<select id="reportedPostsByGroupNo" parameterType="int" resultType="kr.or.ddit.vo.CommReportVO">
+    SELECT 
+        g.GROUP_NAME AS communityName, 
+        c.COMM_CN AS postContent,    
+        c.MEM_ID AS postAuthor,       
+        r.COMM_REPORT_CN AS reportReason, 
+        cr.COMM_REG_NICK AS reporterNick,
+        r.MEM_ID AS reporterId,       
+        r.COMM_REPORT_DT AS reportDate 
+    FROM 
+        comm_report r
+    LEFT JOIN 
+        community c ON r.COMM_NO = c.COMM_NO
+    LEFT JOIN 
+        groups g ON c.GROUP_NO = g.GROUP_NO
+    LEFT JOIN 
+        community_regdata cr ON r.MEM_ID = cr.MEM_ID AND c.GROUP_NO = cr.GROUP_NO
+    WHERE 
+        g.GROUP_NO = #{groupNo}
+    ORDER BY 
+        r.COMM_REPORT_DT DESC
+</select>
+<select id="reportedPostsByStatus" parameterType="int" resultType="kr.or.ddit.vo.CommReportVO">
+ g.GROUP_NAME AS communityName, 
+        c.COMM_CN AS postContent,    
+        c.MEM_ID AS postAuthor,       
+        r.COMM_REPORT_CN AS reportReason, 
+        cr.COMM_REG_NICK AS reporterNick,
+        r.MEM_ID AS reporterId,       
+        r.COMM_REPORT_DT AS reportDate 
+    FROM 
+        comm_report r
+    LEFT JOIN 
+        community c ON r.COMM_NO = c.COMM_NO
+    LEFT JOIN 
+        groups g ON c.GROUP_NO = g.GROUP_NO
+    LEFT JOIN 
+        community_regdata cr ON r.MEM_ID = cr.MEM_ID AND c.GROUP_NO = cr.GROUP_NO    
+WHERE r.COMM_REPORT_YN = #{commReportYn}
+</select>
+
+<select id="reportedPostsByGroupNoAndStatus" parameterType="map" resultType="kr.or.ddit.vo.CommReportVO">
+ g.GROUP_NAME AS communityName, 
+        c.COMM_CN AS postContent,    
+        c.MEM_ID AS postAuthor,       
+        r.COMM_REPORT_CN AS reportReason, 
+        cr.COMM_REG_NICK AS reporterNick,
+        r.MEM_ID AS reporterId,       
+        r.COMM_REPORT_DT AS reportDate 
+    FROM 
+        comm_report r
+    LEFT JOIN 
+        community c ON r.COMM_NO = c.COMM_NO
+    LEFT JOIN 
+        groups g ON c.GROUP_NO = g.GROUP_NO
+    LEFT JOIN 
+        community_regdata cr ON r.MEM_ID = cr.MEM_ID AND c.GROUP_NO = cr.GROUP_NO    
+WHERE g.GROUP_NO = #{groupNo} AND r.COMM_REPORT_YN = #{commReportYn}
+</select>
+
+    <!-- 페이지네이션 
+    
+    <select id="list" parameterType="hashMap"
+	   SELECT T.RNUM, T.GROUP_NO, T.COMM_NO, T.MEM_ID, T.COMM_CN, T.COMM_WRITE_DATE, T.GROUP_NAME, T.COMM_REG_NICK
+    FROM (
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY c.COMM_WRITE_DATE DESC) AS RNUM,
+            c.GROUP_NO,
+            c.COMM_NO,
+            c.MEM_ID,
+            c.COMM_CN,
+            c.COMM_WRITE_DATE,
+            g.GROUP_NAME,
+            cr.COMM_REG_NICK
+        FROM 
+            community c
+        LEFT JOIN 
+            groups g ON c.GROUP_NO = g.GROUP_NO
+        LEFT JOIN 
+            community_regdata cr ON c.GROUP_NO = cr.GROUP_NO AND c.MEM_ID = cr.MEM_ID
+        WHERE 1=1
+        <include refid="where"></include>
+    ) T
+    WHERE T.RNUM BETWEEN (#{currentPage} - 1) * #{pageSize} + 1 AND #{currentPage} * #{pageSize}
+	</select>
+ -->
+	
+<!-- <select id="listAll" resultType="kr.or.ddit.vo.CommunityVO"> -->
+<!-- select GROUP_NO, COMM_CN, MEM_ID, COMM_WRITE_DATE -->
+<!-- from community -->
+<!-- order by COMM_WRITE_DATE desc -->
+<!-- </select> -->
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.shop.mapper.CartDetailMapper">
+
+    <!-- 장바구니 상세(CART_DETAIL) 등록 -->
+    <insert id="insertCartDetail" parameterType="kr.or.ddit.vo.CartDetailVO">
+        INSERT INTO CART_DETAIL (CART_NO, GDS_NO, CART_DETAIL_QY)
+        VALUES (#{cartNo}, #{gdsNo}, #{cartDetailQy})
+    </insert>
+
+    <!-- 특정 장바구니 상세 조회 -->
+    <select id="selectCartDetailByCartNo" parameterType="int" resultType="kr.or.ddit.vo.CartDetailVO">
+        SELECT *
+        FROM CART_DETAIL
+        WHERE CART_NO = #{cartNo}
+    </select>
+
+    <!-- 특정 상품의 장바구니 상세 조회 -->
+    <select id="selectCartDetailByGdsNo" parameterType="int" resultType="kr.or.ddit.vo.CartDetailVO">
+        SELECT CART_NO, GDS_NO, CART_DETAIL_QY
+        FROM CART_DETAIL
+        WHERE GDS_NO = #{gdsNo}
+    </select>
+
+    <!-- 특정 장바구니 번호와 상품 번호로 장바구니 상세 조회 -->
+    <select id="selectCartDetailByCartNoAndGdsNo" parameterType="map" resultType="kr.or.ddit.vo.CartDetailVO">
+        SELECT CART_NO, GDS_NO, CART_DETAIL_QY
+        FROM CART_DETAIL
+        WHERE CART_NO = #{cartNo} AND GDS_NO = #{gdsNo}
+    </select>
+
+    <!-- 장바구니 상세 수량 업데이트 -->
+    <update id="updateCartDetailQy" parameterType="kr.or.ddit.vo.CartDetailVO">
+        UPDATE CART_DETAIL
+        SET CART_DETAIL_QY = #{cartDetailQy}
+        WHERE CART_NO = #{cartNo} AND GDS_NO = #{gdsNo}
+    </update>
+
+    <!-- 특정 장바구니 상세 삭제 -->
+    <delete id="deleteCartDetail" parameterType="map">
+        DELETE FROM CART_DETAIL
+        WHERE CART_NO = #{cartNo} AND GDS_NO = #{gdsNo}
+    </delete>
+
+</mapper>

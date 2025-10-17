@@ -1,0 +1,13 @@
+@charset "UTF-8";
+
+/* 드롭다운 높이 지정 */
+.dropdownScroll {
+	max-height: 200px; /* 최대 높이 지정 */
+    overflow-y: auto; /* 스크롤 활성화 */
+}
+
+/* 마우스 호버 */
+.hoverText:hover {
+	color: rgb(0, 0, 91) !important;
+	cursor: pointer;
+}

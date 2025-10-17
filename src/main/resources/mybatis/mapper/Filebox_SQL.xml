@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.FileboxMapper">
+
+	<!-- 주인공 -->
+	<resultMap type="kr.or.ddit.vo.ProjectVO" id="projectMap">
+		<result property="proDeadline" column="PRO_DEADLINE"/>
+		<result property="proRegDate" column="PRO_REG_DATE"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="proTtl" column="PRO_TTL"/>
+		<result property="proManager" column="PRO_MANAGER"/>
+		<result property="proComment" column="PRO_COMMENT"/>
+		<collection property="ganttVOList" resultMap="ganttMap"></collection>
+	</resultMap>
+
+	<!-- 게시글 : 파일그룹 = 1 : 1 -->
+	<resultMap type="kr.or.ddit.vo.GanttVO" id="ganttMap">
+		<result property="proYn" column="PRO_YN"/>
+		<result property="ganttChartsNo" column="GANTT_CHARTS_NO"/>
+		<result property="proNo" column="PRO_NO"/>
+		<result property="proJobNm" column="PRO_JOB_NM"/>
+		<result property="proColor" column="PRO_COLOR"/>
+		<result property="proDuration" column="PRO_DURATION"/>
+		<result property="proStartDate" column="PRO_START_DATE"/>
+		<result property="proEndDate" column="PRO_END_DATE"/>
+		<result property="proProgrsRt" column="PRO_PROGRS_RT"/>
+		<result property="proFileNo" column="PRO_FILE_NO"/>
+		<result property="proTtl" column="PRO_TTL"/>
+		<association property="projectFileVO" resultMap="projectFileMap"></association>
+	</resultMap>
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.ProjectFileVO" id="projectFileMap">
+		<result property="ganttChartsNo" column="GANTT_CHARTS_NO"/>
+		<result property="proRegDate" column="PRO_REG_DATE"/>
+		<result property="proFileNo" column="PRO_FILE_NO"/>
+		<result property="proFileName" column="PRO_FILE_NAME"/>
+		<result property="proFileType" column="PRO_FILE_TYPE"/>
+		<result property="proFilePath" column="PRO_FILE_PATH"/>
+		<collection property="projectFileDetailVOList" resultMap="projectFileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.ProjectFileDetailVO" id="projectFileDetailMap">
+		<result property="fileSn" column="FILE_SN"/>
+		<result property="proFileNo" column="PRO_FILE_NO"/>
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME"/>
+		<result property="fileSaveName" column="FILE_SAVE_NAME"/>
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE"/>
+		<result property="fileSize" column="FILE_SIZE"/>
+		<result property="fileExt" column="FILE_EXT"/>
+		<result property="fileMime" column="FILE_MIME"/>
+		<result property="fileFancysize" column="FILE_FANCYSIZE"/>
+		<result property="fileSaveDate" column="FILE_SAVE_DATE"/>
+		<result property="fileDwldCnt" column="FILE_DWLD_CNT"/>
+	</resultMap>
+
+	<!-- 파일 불러오기(상위 프로젝트별 파일 불러오기) -->
+	<select id="filebox" parameterType="kr.or.ddit.vo.GanttVO" resultMap="projectMap">
+		SELECT PG.GANTT_CHARTS_NO, PG.PRO_NO, PG.PRO_JOB_NM, PG.PRO_START_DATE
+		           , PG.PRO_END_DATE, PG.PRO_PROGRS_RT, PG.PRO_FILE_NO, PG.PRO_COLOR, PG.PRO_DURATION, PG.PRO_YN
+		           , PF.PRO_FILE_NO
+		           , PFD.FILE_SN, PFD.PRO_FILE_NO, PFD.FILE_ORIGINAL_NAME, PFD.FILE_SAVE_NAME, PFD.FILE_SAVE_LOCATE
+		           , PFD.FILE_SIZE, PFD.FILE_EXT, PFD.FILE_MIME, PFD.FILE_FANCYSIZE, PFD.FILE_SAVE_DATE, PFD.FILE_DWLD_CNT
+		           , P.PRO_TTL
+		FROM PROJECT P INNER JOIN PROJECT_GANTTCHARTS PG ON(PG.PRO_NO = P.PRO_NO)
+		               LEFT OUTER JOIN PROJECT_FILE PF ON(PG.PRO_FILE_NO = PF.PRO_FILE_NO)
+		               LEFT OUTER JOIN PROJECT_FILE_DETAIL PFD ON(PF.PRO_FILE_NO = PFD.PRO_FILE_NO)
+		WHERE PG.PRO_NO = #{proNo}
+		ORDER BY PG.PRO_START_DATE
+	</select>
+
+	<!-- 파일 업로드 -->
+	<update id="updateFileAjax" parameterType="kr.or.ddit.vo.GanttVO">
+		UPDATE PROJECT_GANTTCHARTS
+		SET
+			PRO_FILE_NO = #{proFileNo}
+		WHERE GANTT_CHARTS_NO = #{ganttChartsNo}
+	</update>
+
+	<!-- 파일 불러오기(경로) -->
+	<select id="filePath" parameterType="kr.or.ddit.vo.FileboxVO" resultType="kr.or.ddit.vo.FileboxVO">
+		SELECT PG.PRO_NO
+           , PF.GANTT_CHARTS_NO, PFD.FILE_SAVE_LOCATE, PFD.FILE_EXT ,PFD.FILE_ORIGINAL_NAME
+		FROM PROJECT_GANTTCHARTS PG JOIN PROJECT_FILE PF ON(PG.GANTT_CHARTS_NO = PF.GANTT_CHARTS_NO)
+                                    JOIN PROJECT_FILE_DETAIL PFD ON(PF.PRO_FILE_NO = PFD.PRO_FILE_NO)
+		WHERE PG.PRO_NO = #{proNo}
+		ORDER BY 1
+
+	</select>
+
+	<!-- 파일별 갯수 가져오기 -->
+	<select id="fileCount" parameterType="kr.or.ddit.vo.GanttVO" resultType="kr.or.ddit.vo.GanttVO">
+		SELECT
+		    PG.GANTT_CHARTS_NO,
+		    PG.PRO_JOB_NM,
+		    PG.PRO_START_DATE,
+    		PG.PRO_END_DATE,
+		    NVL(FC.FILE_CNT, 0) FILE_CNT
+		    , FC.FILE_EXT
+		FROM
+		    PROJECT_GANTTCHARTS PG
+		    LEFT  JOIN (
+		        SELECT
+		            PF.GANTT_CHARTS_NO,
+		            PFD.FILE_EXT,
+		            COUNT(*) FILE_CNT
+		        FROM
+		            PROJECT_FILE PF
+		            JOIN PROJECT_FILE_DETAIL PFD
+		            ON ( PF.PRO_FILE_NO = PFD.PRO_FILE_NO )
+		        GROUP BY
+		            PF.GANTT_CHARTS_NO,
+		            PFD.FILE_EXT
+		    )                   FC ON PG.GANTT_CHARTS_NO = FC.GANTT_CHARTS_NO
+		WHERE
+		    PG.PRO_NO = #{proNo}
+		    ORDER BY PG.PRO_JOB_NM
+	</select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

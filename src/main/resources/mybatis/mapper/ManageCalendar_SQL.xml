@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.managerpage.mapper.CalendarMapper">
+
+
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			AND (
+			GROUP_NAME LIKE '%' || #{keyword} || '%' OR
+			GROUP_INTRCN LIKE '%' || #{keyword} || '%' OR
+			FILE_GROUP_NO LIKE '%'
+			|| #{keyword} || '%'
+			)
+		</if>
+	</sql>
+
+	<resultMap type="kr.or.ddit.vo.GroupsVO" id="groupMap">
+		<result property="groupNo" column="GROUP_NO" />
+		<result property="groupName" column="GROUP_NAME" />
+		<result property="groupBirth" column="GROUP_BIRTH" />
+		<result property="groupDspgn" column="GROUP_DSPGN" />
+		<result property="groupIntrcn" column="GROUP_INTRCN" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="groupBirthInputter" column="GROUP_BIRTH_INPUTTER"/>
+<result property="groupDspgnInputter" column="GROUP_DSPGN_INPUTTER"/>
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+		<collection property="artistList" resultMap="artistMap" />
+
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.ArtistVO" id="artistMap">
+		<result property="artistNo" column="ARTIST_NO" />
+		<result property="artistName" column="ARTIST_NAME" />
+		<result property="artistProfile" column="ARTIST_PROFILE" />
+		<result property="artistBirth" column="ARTIST_BIRTH" />
+		<result property="artistIntrcn" column="ARTIST_INTRCN" />
+		<result property="memId" column="MEM_ID" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+	</resultMap>
+
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+<!-- 아티스트 서치 -->
+	<select id="artistSearch" parameterType="kr.or.ddit.vo.ArtistVO" resultType="kr.or.ddit.vo.ArtistVO">
+	 SELECT
+    artist_no
+  , artist_name
+  , artist_profile
+  , artist_birth
+  , artist_intrcn
+  , mem_id
+  , file_group_no
+	FROM
+    artist
+    WHERE artist_name= #{artistName}
+	</select>
+
+
+
+	<!-- 총 페이지 수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM GROUPS
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+
+
+
+	<select id="listSort" parameterType="hashMap"
+		resultMap="groupMap">
+		SELECT
+		T.RNUM
+		, T.GROUP_NO, T.GROUP_NAME,  T.group_birth_inputter, T.group_dspgn_inputter
+		, T.GROUP_BIRTH, T.GROUP_DSPGN, T.GROUP_INTRCN, T.FILE_GROUP_NO
+		, T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		, T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT,T.FILE_MIME
+		, T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		<if test="sortName == 'groupNo'">
+			ORDER BY G.GROUP_NO
+		</if>
+		<if test="sortName == 'groupName'">
+			ORDER BY G.GROUP_NAME
+		</if>
+		<if test="sortName == 'groupBirth'">
+			ORDER BY G.GROUP_BIRTH
+		</if>
+		<if test="sortName == 'groupDspgn'">
+			ORDER BY G.GROUP_DSPGN
+		</if>
+		<if test="mode == 0">
+			asc
+		</if>
+		<if test="mode == 1">
+			desc
+		</if>
+		) AS RNUM
+		, G.GROUP_NO, G.GROUP_NAME
+		, G.GROUP_BIRTH, G.GROUP_DSPGN, G.GROUP_INTRCN, G.FILE_GROUP_NO
+		 , G.group_birth_inputter , G.group_dspgn_inputter
+		, FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM GROUPS G
+
+		LEFT OUTER JOIN FILE_GROUP FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE 1 = 1
+
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(1 * 10) -
+		(10 - 1) AND
+		(1 *
+		10)
+	</select>
+	<insert id="createGroup" parameterType="kr.or.ddit.vo.GroupsVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="groupNo">
+			SELECT NVL(MAX(GROUP_NO),0)+1 FROM GROUPS
+		</selectKey>
+		INSERT INTO GROUPS (
+		GROUP_NO
+		, GROUP_NAME
+		, GROUP_BIRTH
+		, GROUP_DSPGN
+		, GROUP_INTRCN
+		, GROUP_BIRTH_INPUTTER
+		, GROUP_DSPGN_INPUTTER
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, FILE_GROUP_NO
+		</if>
+		) VALUES (
+		#{groupNo}, #{groupName}, #{groupBirth}
+		, null,#{groupIntrcn}
+		,#{groupBirthInputter}
+		,null
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, #{fileGroupNo}
+		</if>
+		)
+	</insert>
+
+	<select id="groupDetail" parameterType="int"
+		resultMap="groupMap">
+		SELECT
+		G.GROUP_NO, G.GROUP_NAME
+		, G.GROUP_BIRTH, G.GROUP_DSPGN,
+		G.GROUP_INTRCN, G.FILE_GROUP_NO
+		, FG.FILE_REGDATE, FD.FILE_SN,
+		FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE,
+		FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		, FD.FILE_FANCYSIZE,
+		FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		, A.ARTIST_NO, A.ARTIST_NAME, A.ARTIST_PROFILE, A.MEM_ID
+		FROM GROUPS G
+		LEFT OUTER JOIN FILE_GROUP FG ON G.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		LEFT OUTER JOIN GROUP_PSITN GP ON GP.GROUP_NO = G.GROUP_NO
+		LEFT OUTER JOIN ARTIST A ON GP.ARTIST_NO = A.ARTIST_NO
+		WHERE G.GROUP_NO=
+		#{groupNo}
+  		AND (GP.GROUP_PSITN_YN = 0 OR GP.GROUP_PSITN_YN IS NULL)
+  			</select>
+	<!-- map.put("artistNo",artistNo); map.put("groupNo",groupNo); -->
+	
+	
+	
+	<update id="groupArtistDel" parameterType="map">
+		UPDATE group_psitn
+		SET
+		group_psitn_yn = 1
+		WHERE
+		group_no = #{groupNo}
+		AND artist_no = #{artistNo}
+	</update>
+	
+	<insert id="addCalendarEvent" parameterType="kr.or.ddit.vo.SchdulVO">
+    <selectKey resultType="int" order="BEFORE" keyProperty="schdulNo">
+        SELECT NVL(MAX(SCHDUL_NO), 0) + 1 FROM SCHDUL
+    </selectKey>
+    INSERT INTO SCHDUL (
+        SCHDUL_NO,
+        ARTIST_NO,
+        SCHDUL_TYPE_NO,
+        SCHDUL_TTL,
+        SCHDUL_CONTENT,
+        SCHDUL_START_DATE,
+        SCHDUL_END_DATE,
+        SCHDUL_ALLDAY_YN,
+        SCHDUL_TYPE_BAKCOL,
+        SCHDUL_TYPE_TXTCOL,
+        MEM_ID,
+        GROUP_NO
+    ) VALUES (
+        #{schdulNo},
+        #{artistNo},
+        #{schdulTypeNo},
+        #{schdulTtl},
+        #{schdulContent},
+        #{schdulStartDate},
+        #{schdulEndDate},
+        #{schdulAllDayYn},
+        #{schdulTypeBakcol},
+        #{schdulTypeTxtcol},
+        #{memId},
+        #{groupNo}
+    )
+</insert>
+
+<resultMap id="calendarMap" type="kr.or.ddit.vo.SchdulVO">
+    <result property="schdulNo" column="SCHDUL_NO"/>
+    <result property="artistNo" column="ARTIST_NO"/>
+    <result property="schdulTypeNo" column="SCHDUL_TYPE_NO"/>
+    <result property="schdulTtl" column="SCHDUL_TTL"/> 
+    <result property="schdulContent" column="SCHDUL_CONTENT"/> 
+    <result property="schdulStartDate" column="SCHDUL_START_DATE"/>
+    <result property="schdulEndDate" column="SCHDUL_END_DATE"/>
+    <result property="schdulAllDayYn" column="SCHDUL_ALLDAY_YN"/>
+    <result property="memId" column="MEM_ID"/>
+    <result property="groupNo" column="GROUP_NO"/>
+    <result property="groupName" column="GROUP_NAME"/>
+    <result property="schdulTypeBakcol" column="SCHDUL_TYPE_BAKCOL"/>
+    <result property="schdulTypeTxtcol" column="SCHDUL_TYPE_TXTCOL"/>
+</resultMap>
+
+<update id="updateCalendarEvent" parameterType="kr.or.ddit.vo.SchdulVO">
+    UPDATE SCHDUL
+    SET
+        SCHDUL_TTL = #{schdulTtl},
+        SCHDUL_CONTENT = #{schdulContent},
+        SCHDUL_START_DATE = #{schdulStartDate},
+        SCHDUL_END_DATE = #{schdulEndDate},
+        SCHDUL_ALLDAY_YN = #{schdulAllDayYn},
+        SCHDUL_TYPE_BAKCOL = #{schdulTypeBakcol},
+        SCHDUL_TYPE_TXTCOL = #{schdulTypeTxtcol},
+        MEM_ID = #{memId},
+        GROUP_NO = #{groupNo},
+        SCHDUL_TYPE_NO = #{schdulTypeNo}
+    WHERE SCHDUL_NO = #{schdulNo}
+</update>
+
+<delete id="deleteCalendarEvent" parameterType="int">
+    DELETE FROM SCHDUL
+    WHERE SCHDUL_NO = #{schdulNo}
+</delete>
+
+<select id="getCalendarEvent" parameterType="int" resultMap="calendarMap">
+    SELECT
+        S.SCHDUL_NO,
+        S.ARTIST_NO,
+        S.SCHDUL_CONTENT,
+        S.SCHDUL_TYPE_NO,
+        S.SCHDUL_TTL,
+        S.SCHDUL_START_DATE,
+        S.SCHDUL_END_DATE,
+        S.SCHDUL_ALLDAY_YN,
+        S.SCHDUL_TYPE_BAKCOL,
+        S.SCHDUL_TYPE_TXTCOL,
+        S.MEM_ID,
+        S.GROUP_NO,
+        G.GROUP_NAME  <!-- GROUP_NAME 추가 -->
+    FROM SCHDUL S
+    JOIN GROUPS G ON S.GROUP_NO = G.GROUP_NO  <!-- GROUPS 테이블과 조인 -->
+    WHERE S.GROUP_NO = #{groupNo}
+    ORDER BY S.SCHDUL_START_DATE
+</select>
+
+
+<select id="getEventDetails" parameterType="int" resultType="SchdulVO">
+    SELECT *
+    FROM SCHDUL
+    WHERE SCHDUL_NO = #{schdulNo}
+</select>
+
+
+
+<!-- 일정 유형 정보 추가 -->
+<select id="getSchdulType" parameterType="int" resultMap="schdulTypeMap">
+    SELECT
+        SCHDUL_TYPE_NO,
+        SCHDUL_TYPE_NAME,
+        SCHDUL_TYPE_BAKCOL,
+        SCHDUL_TYPE_TXTCOL
+    FROM SCHDUL_TYPE
+    WHERE SCHDUL_TYPE_NO = #{schdulTypeNo}
+</select>
+
+<resultMap id="schdulTypeMap" type="kr.or.ddit.vo.SchdulVO">
+    <result property="schdulTypeNo" column="SCHDUL_TYPE_NO"/>
+    <result property="schdulTypeName" column="SCHDUL_TYPE_NAME"/>
+    <result property="schdulTypeBakcol" column="SCHDUL_TYPE_BAKCOL"/>
+    <result property="schdulTypeTxtcol" column="SCHDUL_TYPE_TXTCOL"/>
+</resultMap>
+<!-- 그룹 리스트 조회 -->
+    <select id="getGroupList" resultType="kr.or.ddit.vo.GroupsVO">
+        SELECT 
+            GROUP_NO, 
+            GROUP_NAME, 
+            GROUP_BIRTH, 
+            GROUP_DSPGN, 
+            GROUP_INTRCN, 
+            FILE_GROUP_NO, 
+            GROUP_BIRTH_INPUTTER, 
+            GROUP_DSPGN_INPUTTER
+        FROM 
+            GROUPS
+    </select>
+	
+</mapper>
+
+

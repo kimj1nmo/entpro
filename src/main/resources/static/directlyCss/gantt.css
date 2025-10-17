@@ -1,0 +1,61 @@
+@charset "UTF-8";
+
+html,
+body {
+	padding: 0px;
+	margin: 0px;
+	height: 100%;
+/* 	overflow: auto !important; 추가한 CSS */
+}
+
+.gantt_grid_scale .gantt_grid_head_cell,
+.gantt_task .gantt_task_scale .gantt_scale_cell {
+	font-weight: bold;
+	font-size: 14px;
+	color: rgba(0, 0, 0, 0.7);
+}
+
+.task-color-cell {
+	vertical-align: middle;
+	width: 12px;
+	height: 12px;
+	border: 1px solid #cecece;
+	display: inline-block;
+	border-radius: 6px;
+}
+
+/* 추가한 CSS */
+/*
+.gantt_container {
+    overflow: auto; 컨테이너에서 스크롤 동작 가능하도록 설정
+}
+
+.gantt_layout {
+    min-width: 100%; 필요한 경우 레이아웃 최소 너비를 설정
+}
+*/
+
+/*
+ #gantt_container {
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: auto !important; 좌우 스크롤 활성화
+    overflow-y: auto !important; 상하 스크롤 비활성화 (필요 시 auto)
+}
+
+.gantt_task {
+    min-width: 1500px !important; Gantt 차트의 최소 너비 설정
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+

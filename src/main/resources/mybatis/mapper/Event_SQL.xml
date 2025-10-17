@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.event.mapper.EventMapper">
+
+    <resultMap type="kr.or.ddit.vo.EventVO" id="eventMap">
+        <result property="evtBoardNo" column="EVT_BOARD_NO"/>
+        <result property="evtBoardCtgry" column="EVT_BOARD_CTGRY"/>
+        <result property="evtBoardTtl" column="EVT_BOARD_TTL"/>
+        <result property="evtBoardCn" column="EVT_BOARD_CN"/>
+        <result property="evtBoardDate" column="EVT_BOARD_DATE"/>
+        <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+        <association property="fileGroupVO" resultMap="fileGroupMap"></association>
+    </resultMap>
+
+    <resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+        <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+        <result property="fileRegdate" column="FILE_REGDATE"/>
+        <collection property="fileDetailVOList" resultMap="fileDetailMap"></collection>
+    </resultMap>
+
+    <resultMap type="kr.or.ddit.vo.FileDetailVO" id="fileDetailMap">
+        <result property="fileSn" column="FILE_SN"/>
+        <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+        <result property="fileOriginalName" column="FILE_ORIGINAL_NAME"/>
+        <result property="fileSaveName" column="FILE_SAVE_NAME"/>
+        <result property="fileSaveLocate" column="FILE_SAVE_LOCATE"/>
+        <result property="fileSize" column="FILE_SIZE"/>
+        <result property="fileExt" column="FILE_EXT"/>
+        <result property="fileMime" column="FILE_MIME"/>
+        <result property="fileFancysize" column="FILE_FANCYSIZE"/>
+        <result property="fileSaveDate" column="FILE_SAVE_DATE"/>
+        <result property="fileDowncount" column="FILE_DOWNCOUNT"/>
+    </resultMap>
+
+    <sql id="where">
+        <if test="keyword!=null and keyword!=''">
+            AND (
+                EVT_BOARD_TTL LIKE '%' || #{keyword} || '%'
+            )
+        </if>
+    </sql>
+
+    <select id="getTotal" parameterType="hashMap" resultType="int">
+        SELECT COUNT(*) FROM EVENT_BOARD
+        WHERE 1 = 1
+        <include refid="where"/>
+    </select>
+
+    <select id="list" parameterType="hashMap" resultType="kr.or.ddit.vo.EventVO">
+    SELECT T.RNUM, T.EVT_BOARD_NO, T.EVT_BOARD_CTGRY, T.EVT_BOARD_TTL, T.EVT_BOARD_CN, T.EVT_BOARD_DATE, T.FILE_GROUP_NO
+    FROM (
+        SELECT ROW_NUMBER() OVER (ORDER BY EVT_BOARD_DATE DESC) RNUM,  <!-- 날짜 기준 내림차순 정렬 -->
+               EVT_BOARD_NO, EVT_BOARD_CTGRY, EVT_BOARD_TTL, EVT_BOARD_CN,
+               TO_CHAR(EVT_BOARD_DATE, 'yyyy-mm-dd') EVT_BOARD_DATE, FILE_GROUP_NO
+        FROM EVENT_BOARD
+        WHERE 1 = 1
+        <include refid="where"/>
+    ) T
+    WHERE T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND (#{currentPage} * 10)
+</select>
+
+
+    <select id="detail" parameterType="int" resultMap="eventMap">
+    SELECT 
+        EB.EVT_BOARD_NO, 
+        EB.EVT_BOARD_CTGRY, 
+        EB.EVT_BOARD_TTL, 
+        EB.EVT_BOARD_CN, 
+        TO_CHAR(EB.EVT_BOARD_DATE, 'yyyy-mm-dd') EVT_BOARD_DATE, 
+        EB.FILE_GROUP_NO,
+        FG.FILE_REGDATE,
+        FD.FILE_SN, 
+        FD.FILE_ORIGINAL_NAME,
+        FD.FILE_SAVE_NAME, 
+        FD.FILE_SAVE_LOCATE, 
+        FD.FILE_SIZE,
+        FD.FILE_EXT, 
+        FD.FILE_MIME, 
+        FD.FILE_FANCYSIZE, 
+        FD.FILE_SAVE_DATE,
+        FD.FILE_DOWNCOUNT
+    FROM 
+        EVENT_BOARD EB
+    LEFT OUTER JOIN 
+        FILE_GROUP FG ON EB.FILE_GROUP_NO = FG.FILE_GROUP_NO
+    LEFT OUTER JOIN 
+        FILE_DETAIL FD ON EB.FILE_GROUP_NO = FD.FILE_GROUP_NO
+    WHERE 
+        EB.EVT_BOARD_NO = #{evtBoardNo}
+</select>
+
+
+
+    <!-- 게시글 등록 -->
+    <insert id="insertPost" parameterType="kr.or.ddit.vo.EventVO">
+        <selectKey resultType="int" order="BEFORE" keyProperty="evtBoardNo">
+            SELECT NVL(MAX(EVT_BOARD_NO),0)+1 FROM EVENT_BOARD
+        </selectKey>
+        INSERT INTO EVENT_BOARD (EVT_BOARD_NO, EVT_BOARD_CTGRY, EVT_BOARD_TTL, EVT_BOARD_CN, EVT_BOARD_DATE
+            <if test="fileGroupNo != null and fileGroupNo != ''">
+                , FILE_GROUP_NO
+            </if>
+        )
+        VALUES (#{evtBoardNo}, #{evtBoardCtgry}, #{evtBoardTtl}, #{evtBoardCn}, SYSDATE
+            <if test="fileGroupNo != null and fileGroupNo != ''">
+                , #{fileGroupNo}
+            </if>
+        )
+    </insert>
+
+    <!-- 첨부파일 등록 -->
+    <insert id="insertFile" parameterType="kr.or.ddit.vo.FileDetailVO">
+        INSERT INTO FILE_DETAIL (
+            FILE_SN, FILE_GROUP_NO, FILE_ORIGINAL_NAME, FILE_SAVE_NAME,
+            FILE_SAVE_LOCATE, FILE_SIZE, FILE_EXT, FILE_MIME, FILE_SAVE_DATE
+        ) VALUES (
+            SEQ_FILE_DETAIL.NEXTVAL, #{fileGroupNo}, #{fileOriginalName}, #{fileSaveName},
+            #{fileSaveLocate}, #{fileSize}, #{fileExt}, #{fileMime}, SYSDATE
+        )
+    </insert>
+
+    <!-- 게시글 수정 -->
+    <update id="updatePost" parameterType="kr.or.ddit.vo.EventVO">
+        UPDATE EVENT_BOARD
+        SET EVT_BOARD_CTGRY = #{evtBoardCtgry},
+            EVT_BOARD_TTL = #{evtBoardTtl},
+            EVT_BOARD_CN = #{evtBoardCn},
+            EVT_BOARD_DATE = SYSDATE
+        <if test="fileGroupNo != null and fileGroupNo != ''">
+            , FILE_GROUP_NO = #{fileGroupNo}
+        </if>
+        WHERE EVT_BOARD_NO = #{evtBoardNo}
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deletePost" parameterType="kr.or.ddit.vo.EventVO">
+        DELETE FROM EVENT_BOARD WHERE EVT_BOARD_NO = #{evtBoardNo}
+    </delete>
+</mapper>

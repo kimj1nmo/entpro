@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.companypage.manageartist.ManageArtistMapper">
+
+
+	<sql id="where">
+		<if test="keyword!=null and keyword!=''">
+			AND (
+			ARTIST_NAME LIKE '%' || #{keyword} || '%' OR
+			ARTIST_PROFILE LIKE '%' || #{keyword} || '%' OR
+			FILE_GROUP_NO LIKE '%'
+			|| #{keyword} || '%'
+			)
+		</if>
+	</sql>
+
+	<resultMap type="kr.or.ddit.vo.ArtistVO" id="artistMap">
+		<result property="artistNo" column="ARTIST_NO" />
+		<result property="artistName" column="ARTIST_NAME" />
+		<result property="artistProfile" column="ARTIST_PROFILE" />
+		<result property="artistBirth" column="ARTIST_BIRTH" />
+		<result property="artistIntrcn" column="ARTIST_INTRCN" />
+		<!-- <result property="groupNo" column="GROUP_NO" /> -->
+		<!-- <result property="groupName" column="GROUP_NAME" /> -->
+		<result property="memId" column="MEM_ID" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+<!-- 		<collection property="groupVOList" resultMap="groupMap"></collection> -->
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.GroupsVO" id="groupMap">
+		<result property="groupNo" column="GROUP_NO" />
+		<result property="groupName" column="GROUP_NAME" />
+		<result property="groupBirth" column="GROUP_BIRTH" />
+		<result property="groupDspgn" column="GROUP_DSPGN" />
+		<result property="groupIntrcn" column="GROUP_INTRCN" />
+<!-- 		<result property="fileGroupNo" column="FILE_GROUP_NO" /> -->
+		<result property="groupBirthInputter"
+			column="GROUP_BIRTH_INPUTTER" />
+		<result property="groupDspgnInputter"
+			column="GROUP_DSPGN_INPUTTER" />
+	</resultMap>
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+	<!-- 총 페이지 수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM ARTIST
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+
+	<select id="list" parameterType="hashMap" resultMap="artistMap">
+		SELECT
+		T.RNUM, T.ARTIST_NO, T.ARTIST_NAME, T.ARTIST_PROFILE,
+		T.ARTIST_BIRTH,T.GROUP_NO, T.GROUP_NAME, T.GROUP_BIRTH
+		,T.ARTIST_INTRCN, T.MEM_ID, T.FILE_GROUP_NO
+		, T.FILE_REGDATE
+		,
+		T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		,
+		T.FILE_SAVE_LOCATE,T.FILE_SIZE, T.FILE_EXT, T.FILE_MIME,
+		T.FILE_FANCYSIZE
+		, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER()
+		OVER(ORDER BY A.ARTIST_NO DESC) RNUM
+		, GP.REG_DATE,
+		GP.GROUP_PSITN_YN,G.GROUP_NO, G.GROUP_NAME
+		, G.GROUP_BIRTH,
+		G.GROUP_DSPGN, G.GROUP_INTRCN, A.ARTIST_NO
+		, A.ARTIST_NAME,
+		A.ARTIST_PROFILE, A.ARTIST_BIRTH,A.ARTIST_INTRCN
+		, A.MEM_ID,
+		A.FILE_GROUP_NO
+		, FG.FILE_REGDATE
+		, FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,
+		FD.FILE_MIME,
+		FD.FILE_FANCYSIZE
+		, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM ARTIST A left join
+		GROUP_PSITN GP ON A.ARTIST_NO=GP.ARTIST_NO
+		left
+		join GROUPS G ON
+		G.GROUP_NO=GP.GROUP_NO
+		LEFT OUTER JOIN FILE_GROUP FG ON
+		A.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON
+		FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE 1 = 1
+
+
+		AND (
+		A.ARTIST_NAME LIKE
+		'%' ||
+		#{keyword} || '%' OR
+		A.ARTIST_PROFILE LIKE '%' || #{keyword} ||
+		'%' OR
+		A.FILE_GROUP_NO LIKE
+		'%'
+		|| #{keyword} || '%'
+
+		)
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+	</select>
+
+	<select id="listSort" parameterType="hashMap"
+		resultMap="artistMap">
+		SELECT
+		T.RNUM,
+		T.ARTIST_NO, T.ARTIST_NAME, T.ARTIST_PROFILE,
+		T.ARTIST_BIRTH,
+<!-- 		T.GROUP_NO, T.GROUP_NAME, T.GROUP_BIRTH, -->
+		T.ARTIST_INTRCN, T.MEM_ID, T.FILE_GROUP_NO,
+		T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME,
+		T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT, T.FILE_MIME,
+		T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		ORDER BY
+		<choose>
+			<when test="sortName == 'artistNo'">A.ARTIST_NO</when>
+			<when test="sortName == 'artistName'">A.ARTIST_NAME</when>
+			<when test="sortName == 'memId'">A.MEM_ID</when>
+			<when test="sortName == 'artistBirth'">A.ARTIST_BIRTH</when>
+			<otherwise>A.ARTIST_NO</otherwise>
+		</choose>
+		<choose>
+			<when test="mode == 0">ASC</when>
+			<when test="mode == 1">DESC</when>
+			<otherwise>ASC</otherwise>
+		</choose>
+		) AS RNUM
+<!-- 		,GP.REG_DATE, GP.GROUP_PSITN_YN, -->
+<!-- 		G.GROUP_NO, G.GROUP_NAME, G.GROUP_BIRTH, G.GROUP_DSPGN, G.GROUP_INTRCN -->
+		 ,A.ARTIST_NO,
+		A.ARTIST_NAME, A.ARTIST_PROFILE, A.ARTIST_BIRTH, A.ARTIST_INTRCN,
+		A.MEM_ID, A.FILE_GROUP_NO,
+		FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,
+		FD.FILE_MIME, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM ARTIST A
+
+<!-- 		LEFT JOIN GROUP_PSITN GP ON A.ARTIST_NO = GP.ARTIST_NO -->
+<!-- 		LEFT JOIN GROUPS G ON G.GROUP_NO = GP.GROUP_NO -->
+		LEFT OUTER JOIN FILE_GROUP FG ON A.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE 1 = 1
+
+		AND (
+		A.ARTIST_NAME LIKE '%' || #{keyword} || '%'
+		OR A.ARTIST_PROFILE LIKE '%' || #{keyword} || '%'
+		OR A.FILE_GROUP_NO LIKE '%' || #{keyword} || '%'
+		)
+
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+	</select>
+
+
+	<select id="memIdChk" parameterType="ArtistVO"
+		resultType="ArtistVO">
+		SELECT * FROM MEMBER WHERE MEM_ID = #{memId}
+	</select>
+
+
+	<insert id="createArtist" parameterType="kr.or.ddit.vo.ArtistVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="artistNo">
+			SELECT NVL(MAX(ARTIST_NO),0)+1 FROM ARTIST
+		</selectKey>
+		INSERT INTO ARTIST (
+		ARTIST_NO, ARTIST_NAME, ARTIST_PROFILE
+		,
+		ARTIST_BIRTH, ARTIST_INTRCN, MEM_ID
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, FILE_GROUP_NO
+		</if>
+		) VALUES (
+		#{artistNo}, #{artistName}, #{artistProfile}
+		, #{artistBirth}
+		, null
+		, #{memId}
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, #{fileGroupNo}
+		</if>
+		)
+	</insert>
+	<select id="artistDetail" parameterType="int"
+		resultType="kr.or.ddit.vo.ArtistVO">
+		SELECT GP.REG_DATE , GP.GROUP_PSITN_YN , G.GROUP_NO ,
+		G.GROUP_NAME , G.GROUP_BIRTH
+		, G.GROUP_DSPGN , G.GROUP_INTRCN ,
+		A.ARTIST_NO , A.ARTIST_NAME , A.ARTIST_PROFILE
+		, A.ARTIST_BIRTH ,
+		A.ARTIST_INTRCN , A.MEM_ID , A.FILE_GROUP_NO FROM ARTIST
+		A left join
+		GROUP_PSITN GP ON A.ARTIST_NO=GP.ARTIST_NO left join GROUPS G
+		ON
+		G.GROUP_NO=GP.GROUP_NO WHERE A.ARTIST_NO=#{artistNo}
+	</select>
+
+	<update id="updateArtist" parameterType="kr.or.ddit.vo.ArtistVO">
+		UPDATE ARTIST
+		SET
+		ARTIST_NO = #{artistNo}
+		<if test="artistName!=null and artistName!=''">
+			,ARTIST_NAME = #{artistName}
+		</if>
+		<if test="artistProfile!=null and artistProfile!=''">
+			, ARTIST_PROFILE = #{artistProfile}
+		</if>
+		<if test="artistBirth!=null">
+			, ARTIST_BIRTH = #{artistBirth}
+
+		</if>
+		<if test="fileGroupNo!=null and fileGroupNo!=''">
+			, FILE_GROUP_NO = #{fileGroupNo}
+		</if>
+		WHERE
+		ARTIST_NO = #{artistNo}
+	</update>
+
+	<delete id="deleteArtist" parameterType="kr.or.ddit.vo.ArtistVO">
+
+		DELETE FROM ARTIST
+		WHERE
+		ARTIST_NO = #{artistNo}
+	</delete>
+	<!-- 아티스트 권한 부여 -->
+	<insert id="giveAuthsArtist"
+		parameterType="kr.or.ddit.vo.ArtistVO">
+		INSERT INTO AUTH(MEM_ID,
+		AUTH_NAME)
+		VALUES(#{memId},'ROLE_ARTIST')
+	</insert>
+
+	<select id="artistGroupList" parameterType="hashMap" resultType="kr.or.ddit.vo.GroupsVO">
+	SELECT
+    G.GROUP_NO
+  , G.GROUP_NAME
+  , G.GROUP_BIRTH
+  , G.GROUP_DSPGN
+  , G.GROUP_INTRCN
+  , G.FILE_GROUP_NO
+  , G.GROUP_BIRTH_INPUTTER
+  , G.GROUP_DSPGN_INPUTTER
+  ,GP.ARTIST_NO
+FROM
+    GROUPS G
+    		LEFT JOIN GROUP_PSITN GP ON G.GROUP_NO = GP.GROUP_NO
+	WHERE ARTIST_NO=#{artistNo}
+	</select>
+
+
+	<!-- <select id="list" parameterType="hashMap" resultType="kr.or.ddit.vo.ArtistVO">
+		SELECT T.RNUM, T.ARTIST_NO, T.ARTIST_NAME, T.ARTIST_PROFILE, T.ARTIST_BIRTH
+		, T.ARTIST_INTRCN, T.MEM_ID, T.FILE_GROUP_NO FROM ( SELECT ROW_NUMBER() OVER(ORDER
+		BY ARTIST_NO DESC) RNUM , ARTIST_NO, ARTIST_NAME, ARTIST_PROFILE, ARTIST_BIRTH
+		, ARTIST_INTRCN, MEM_ID, FILE_GROUP_NO FROM ARTIST WHERE 1 = 1 <include refid="where"></include>
+		) T WHERE T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND (#{currentPage}
+		* 10) </select> <select id="artistDetail" parameterType="int" resultType="kr.or.ddit.vo.ArtistVO">
+		SELECT GP.REG_DATE , GP.GROUP_PSITN_YN , G.GROUP_NO , G.GROUP_NAME , G.GROUP_BIRTH
+		, G.GROUP_DSPGN , G.GROUP_INTRCN , A.ARTIST_NO , A.ARTIST_NAME , A.ARTIST_PROFILE
+		, A.ARTIST_BIRTH , A.ARTIST_INTRCN , A.MEM_ID , A.FILE_GROUP_NO FROM ARTIST
+		A left join GROUP_PSITN GP ON A.ARTIST_NO=GP.ARTIST_NO left join GROUPS G
+		ON G.GROUP_NO=GP.GROUP_NO WHERE A.ARTIST_NO=#{artistNo} </select> -->
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

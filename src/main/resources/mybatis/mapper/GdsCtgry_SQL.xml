@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.page.companypage.manageshop.GdsCtgryMapper">
+
+    <!-- GDS_CTGRY 테이블에서 모든 카테고리를 조회하는 쿼리 -->
+    <select id="selectCategories" resultType="kr.or.ddit.vo.GdsCtgryVO">
+        SELECT GDS_CTGRY_NO AS gdsCtgryNo, 
+               GDS_CTGRY_NM AS gdsCtgryNm, 
+               GDS_CTGRY_UP_NO AS gdsCtgryUpNo,
+               MEM_ID AS memId, 
+               GDS_CTGRY_REG_DATE AS gdsCtgryRegDate
+        FROM GDS_CTGRY
+        ORDER BY GDS_CTGRY_NO
+    </select>
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mapper.MemberMapper">
+
+	<resultMap type="kr.or.ddit.vo.MemberVO" id="memberMap">
+		<id column="mem_id" property="memId" />
+		<result property="memId" column="MEM_ID" />
+		<result property="departNo" column="DEPART_NO" />
+		<result property="memPw" column="MEM_PW" />
+		<result property="memEnable" column="MEM_ENABLE" />
+		<result property="memName" column="MEM_NAME" />
+		<result property="memGender" column="MEM_GENDER" />
+		<result property="memRegDate" column="MEM_REG_DATE" />
+		<result property="memEmail" column="MEM_EMAIL" />
+		<result property="memTel" column="MEM_TEL" />
+		<result property="posNo" column="POS_NO" />
+      <result column="file_group_no" property="fileGroupNo" />
+      <result column="FILE_SAVE_LOCATE" property="fileSaveLocate" />
+      <collection property="authList" resultMap="authMap" />
+   </resultMap>
+
+   <resultMap type="kr.or.ddit.vo.AuthVO" id="authMap">
+      <result column="mem_id"    property="memId" />
+      <result column="auth_name" property="authName" />
+   </resultMap>
+
+		<select id="read" parameterType="string" resultMap="memberMap">
+
+		SELECT M.MEM_ID, M.DEPART_NO, M.MEM_PW, M.MEM_ENABLE, M.MEM_NAME,
+		M.MEM_GENDER
+		, M.MEM_REG_DATE, M.MEM_EMAIL, M.FILE_GROUP_NO, M.MEM_TEL, M.POS_NO
+		, A.AUTH_NAME
+		FROM MEMBER M, AUTH A
+		WHERE M.MEM_ID= #{memId}
+		AND M.MEM_ID= A.MEM_ID
+		AND M.MEM_ENABLE='y'
+	</select>
+
+</mapper>

@@ -1,0 +1,17 @@
+
+.swal2-file {
+  overflow: hidden;
+    clip: rect(0 0 0 0);
+  height: 1px;
+  left: 0;
+  margin: -1px;
+  position: absolute;
+  top: 0;
+  user-select: none;
+  width: 1px;
+} 
+div.timeline::before {
+    content: '';
+    width: 0;
+    height: 0;
+}

@@ -1,0 +1,50 @@
+@charset "UTF-8";
+
+/* 굿즈 구분선 */
+#hrFix{
+  border: 1px solid black;
+}
+
+/* 굿즈 이미지 형태잡기 */
+.imgRadius {
+  width: 50% !important; /* 이미지 크기를 컨테이너에 맞춤 */
+  height: auto !important; /* 이미지 비율 유지 */
+  object-fit: cover !important; /* 이미지가 컨테이너를 꽉 채우도록 */
+  border-radius: 0 !important; /* 둥근 테두리 제거 */
+}
+
+/* 카테고리 굿즈 명 */
+.categoryGoods {
+	margin: 0 0 0 0 !important;
+}
+
+/* 굿즈 공지사항 */
+.goodsNotice {
+	margin-left: 7.5vw !important;
+}
+
+/* section 영역 */
+.section {
+	background-color: white !important;
+	overflow: hidden;
+}
+
+.container {
+	margin-left: 7.5vw !important;
+}
+
+/* 메인 슬라이드 */
+.section.swiper-container {
+  position: relative; /* 화살표 버튼을 절대 위치로 배치할 때, 기준이 될 부모 요소 */
+  width: 100%; /* 컨테이너가 화면에 꽉 차게 만듦 */
+}
+
+
+
+
+
+
+
+
+
+

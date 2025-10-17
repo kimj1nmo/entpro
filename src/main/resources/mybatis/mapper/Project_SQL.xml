@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.ProjectMapper">
+
+<!-- 프로젝트 검색 필터 -->
+<sql id="where">
+   <if test="keyword!=null and keyword!=''">
+   AND    (
+              P.PRO_NO   LIKE  '%' || #{keyword} || '%' OR
+              P.PRO_TTL LIKE  '%' || #{keyword} || '%' OR
+              P.PRO_MANAGER   LIKE  '%' || #{keyword} || '%' OR
+              P.PRO_REG_DATE LIKE  '%' || #{keyword} || '%' OR
+              P.PRO_DEADLINE LIKE  '%' || #{keyword} || '%' OR
+              P.PRO_COMMENT  LIKE  '%' || #{keyword} || '%' OR
+              G.GROUP_NAME  LIKE  '%' || #{keyword} || '%'
+       )
+   </if>
+</sql>
+
+<!-- 담당자 추가 검색 필터 -->
+<sql id="empWhere">
+   <if test="keyword!=null and keyword!=''">
+   AND    (
+              M.MEM_NAME   LIKE  '%' || #{keyword} || '%' OR
+              D.DEPART_NAME  LIKE  '%' || #{keyword} || '%'
+       )
+   </if>
+</sql>
+
+<!-- 비동기 리스트 -->	<!-- map : {currentPage=1, keyword=길동} -->
+<select id="listAjax" parameterType="hashMap" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT T.RNUM, T.PRO_NO, T.PRO_TTL, T.PRO_MANAGER, T.PRO_REG_DATE_STR, SUBSTR(PRO_COMMENT, 1, 10) CUT, T.PRO_DEADLINE_STR
+	          , T.GROUP_NAME
+	FROM
+	    (
+	    SELECT ROW_NUMBER() OVER(ORDER BY P.PRO_DEADLINE) RNUM,
+	    P.PRO_NO, P.PRO_TTL, P.PRO_MANAGER, TO_CHAR(P.PRO_REG_DATE, 'YYYY-MM-DD') PRO_REG_DATE_STR, P.PRO_COMMENT
+	    , TO_CHAR(P.PRO_DEADLINE, 'YYYY-MM-DD') PRO_DEADLINE_STR, G.GROUP_NAME
+	    FROM PROJECT P
+	    JOIN GROUPS G ON(P.GROUP_NO = G.GROUP_NO)
+	    WHERE P.PRO_STATE = 1
+		<include refid="where"></include>
+		) T
+	WHERE T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND
+		(#{currentPage} * 10)
+</select>
+
+<!-- 리스트 불러오기 -->
+<select id="list" parameterType="kr.or.ddit.vo.ProjectVO" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT *
+	FROM PROJECT
+	WHERE PRO_NO = #{proNo}
+</select>
+
+<!-- 총 페이지 수 -->
+<select id="getTotal" parameterType="hashMap" resultType="int">
+	SELECT
+	    COUNT(*)
+	FROM
+	    PROJECT P
+	    JOIN GROUPS G ON ( P.GROUP_NO = G.GROUP_NO )
+	WHERE
+	    1 = 1
+	    AND P.PRO_STATE = 1
+   <include refid="where"></include>
+</select>
+
+<!-- 비동기 등록 -->
+<insert id="createPostAjax" parameterType="kr.or.ddit.vo.ProjectVO">
+	<selectKey resultType="int" order="BEFORE"
+		keyProperty="proNo">
+		SELECT NVL(MAX(PRO_NO),0)+1 FROM PROJECT
+	</selectKey>
+
+	INSERT INTO PROJECT(PRO_NO, PRO_TTL,PRO_MANAGER, PRO_REG_DATE, PRO_DEADLINE, PRO_COMMENT, GROUP_NO, PRO_STATE)
+	VALUES (#{proNo}, #{proTtl}, #{proManager}, #{proRegDate}, #{proDeadline}, #{proComment}, #{groupNo}, 1)
+</insert>
+
+<!-- 프로젝트 기안 상세 -->
+<select id="detail" parameterType="int" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT P.PRO_NO, P.PRO_TTL, P.PRO_MANAGER, TO_CHAR(P.PRO_REG_DATE, 'YYYY-MM-DD') PRO_REG_DATE, P.PRO_COMMENT
+	       , TO_CHAR(P.PRO_DEADLINE, 'YYYY-MM-DD') PRO_DEADLINE
+	       , ROUND(GREATEST(LEAST(((SYSDATE - P.PRO_REG_DATE) / (P.PRO_DEADLINE - P.PRO_REG_DATE)) * 100, 100), 0), 0) AS PERCENTAGE
+	       , G.GROUP_NAME
+	FROM PROJECT P
+	JOIN GROUPS G ON(P.GROUP_NO = G.GROUP_NO)
+	WHERE PRO_NO = #{proNo}
+</select>
+
+<!-- 상세화면 -->
+<select id="detailInfo" parameterType="kr.or.ddit.vo.ProjectVO" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT P.PRO_NO, P.PRO_TTL, P.PRO_MANAGER, TO_CHAR(P.PRO_REG_DATE, 'YYYY-MM-DD') PRO_REG_DATE
+	       , TO_CHAR(P.PRO_DEADLINE, 'YYYY-MM-DD') PRO_DEADLINE
+	       , PG.PRO_JOB_NM, PG.PRO_START_DATE
+	       , PG.PRO_END_DATE, PG.PRO_YN
+	       , ROUND(GREATEST(LEAST(((SYSDATE - TO_DATE(PG.PRO_START_DATE, 'YYYY-MM-DD'))
+	        / (TO_DATE(PG.PRO_END_DATE, 'YYYY-MM-DD') - TO_DATE(PG.PRO_START_DATE, 'YYYY-MM-DD'))) * 100, 100), 0), 0) AS GPERCENTAGE
+	FROM PROJECT P LEFT JOIN PROJECT_GANTTCHARTS PG ON(P.PRO_NO = PG.PRO_NO)
+	WHERE P.PRO_NO = #{proNo}
+	ORDER BY GPERCENTAGE DESC, PG.PRO_START_DATE
+</select>
+
+<!-- 비동기 수정 -->
+<update id="updatePostAjax" parameterType="kr.or.ddit.vo.ProjectVO">
+	UPDATE PROJECT
+	SET
+        PRO_NO = #{proNo}
+        , PRO_TTL = #{proTtl}
+        , PRO_MANAGER = #{proManager}
+        , PRO_REG_DATE = #{proRegDate}
+        , PRO_DEADLINE = #{proDeadline}
+        , PRO_COMMENT = #{proComment}
+	WHERE PRO_NO = #{proNo}
+</update>
+
+<!-- 비동기 삭제 -->
+<update id="deletePostAjax" parameterType="kr.or.ddit.vo.ProjectVO">
+	UPDATE PROJECT
+	SET
+	    PRO_STATE = 0
+	WHERE
+	    PRO_NO = #{proNo}
+</update>
+
+<!-- 파일 불러오기 -->
+<select id="getFile" parameterType="int" resultType="kr.or.ddit.vo.GanttVO">
+	SELECT PG.PRO_NO, PG.PRO_JOB_NM, PF.PRO_FILE_NO, PFD.FILE_SAVE_DATE, PFD.FILE_ORIGINAL_NAME, PFD.FILE_SAVE_LOCATE
+	FROM  PROJECT_GANTTCHARTS PG LEFT OUTER JOIN PROJECT_FILE PF ON(PG.PRO_FILE_NO = PF.PRO_FILE_NO)
+                                 JOIN PROJECT_FILE_DETAIL PFD ON(PF.PRO_FILE_NO = PFD.PRO_FILE_NO)
+	WHERE PG.PRO_NO = #{proNo}
+	ORDER BY PF.PRO_REG_DATE DESC
+</select>
+
+<!-- 담당자 불러오기(프로젝트 디테일부분) -->
+<select id="getManager" parameterType="int" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT PE.MEM_NAME
+	       , PE.PRO_NO, D.DEPART_NO, D.DEPART_NAME
+	FROM PROJECT P
+	JOIN PROJECT_EMP PE ON(P.PRO_NO = PE.PRO_NO)
+	JOIN MEMBER M ON(PE.MEM_ID = M.MEM_ID)
+	JOIN DEPARTMENT D ON(M.DEPART_NO = D.DEPART_NO)
+	WHERE P.PRO_NO = #{proNo}
+</select>
+
+<!-- 직원 불러오기(프로젝트 리스트부분) -->
+<select id="getEmp" parameterType="kr.or.ddit.vo.ProjectEmpVO" resultType="kr.or.ddit.vo.ProjectEmpVO">
+	SELECT M.MEM_ID, PE.PRO_NO, PE.REG_DATE, M.MEM_NAME, M.MEM_ID
+	FROM PROJECT_EMP PE
+	FULL OUTER JOIN MEMBER M ON(PE.MEM_ID = M.MEM_ID)
+</select>
+
+<!-- 특정 차트 직원 리스트 -->
+<select id="projectEmpList" parameterType="int" resultType="kr.or.ddit.vo.DepartmentVO">
+	SELECT
+    M.DEPART_NO,
+    M.MEM_NAME,
+    M.MEM_ID,
+    TO_CHAR(
+        PE.REG_DATE, 'YYYY-MM-DD'
+    ) REG_DATE,
+    D.DEPART_NAME,
+    LISTAGG(PG.PRO_JOB_NM, ', ') WITHIN GROUP(
+    ORDER BY
+        M.MEM_NAME
+    ) PRO_JOB_NM,
+    PE.PRO_NO
+FROM
+    DEPARTMENT          D
+    LEFT OUTER JOIN MEMBER              M ON ( D.DEPART_NO = M.DEPART_NO )
+    JOIN PROJECT_EMP         PE ON ( M.MEM_ID = PE.MEM_ID )
+    LEFT OUTER JOIN PROJECT_GANTTCHARTS PG ON ( PE.MEM_ID = PG.MEM_ID )
+WHERE
+    PE.PRO_NO = #{proNo}
+GROUP BY
+    M.DEPART_NO,
+    M.MEM_NAME,
+    PE.REG_DATE,
+    D.DEPART_NAME,
+    PE.PRO_NO,
+    M.MEM_ID
+ORDER BY REG_DATE
+</select>
+
+<!-- VO 매핑하기 -->
+<resultMap type="kr.or.ddit.vo.DepartmentVO" id="departmentMap">
+	<result property="rnum" column="RNUM"/>
+	<result property="departNo" column="DEPART_NO"/>
+	<result property="departName" column="DEPART_NAME"/>
+	<result property="departParent" column="DEPART_PARENT"/>
+	<result property="proNo" column="PRO_NO"/>
+	<collection property="memberVOList" resultMap="memberMap"></collection>
+</resultMap>
+
+<resultMap type="kr.or.ddit.vo.MemberVO" id="memberMap">
+	<result property="memId" column="MEM_ID"/>
+	<result property="departNo" column="DEPART_NO"/>
+	<result property="memPw" column="MEM_PW"/>
+	<result property="memEnable" column="MEM_ENABLE"/>
+	<result property="memName" column="MEM_NAME"/>
+	<result property="memGender" column="MEM_GENDER"/>
+	<result property="memRegDate" column="MEM_REG_DATE"/>
+	<result property="memEmail" column="MEM_EMAIL"/>
+	<result property="fileGroupNo" column="FILE_GROUP_NO"/>
+	<result property="memTel" column="MEM_TEL"/>
+	<result property="posNo" column="POS_NO"/>
+	<result property="addNo" column="ADD_NO"/>
+	<result property="memBir" column="MEM_BIR"/>
+	<collection property="projectEmpVOList" resultMap="projectEmpMap"></collection>
+</resultMap>
+
+<resultMap type="kr.or.ddit.vo.ProjectEmpVO" id="projectEmpMap">
+	<result property="memName" column="MEM_NAME"/>
+	<result property="memId" column="MEM_ID"/>
+	<result property="proNo" column="PRO_NO"/>
+	<result property="regDate" column="REG_DATE"/>
+</resultMap>
+
+<!-- 전체 직원 리스트 -->
+<select id="getEmpList" parameterType="hashMap" resultMap="departmentMap">
+	SELECT T.RNUM, T.DEPART_NO, T.MEM_NAME, T.REG_DATE, T.DEPART_NAME, T.MEM_ID, T.PRO_NO
+	FROM
+	(   SELECT ROW_NUMBER() OVER(PARTITION BY M .MEM_ID, D.DEPART_NO ORDER BY PE.REG_DATE DESC) AS RN
+		, ROW_NUMBER() OVER(ORDER BY D.DEPART_NO) RNUM
+	    , M.DEPART_NO, M.MEM_NAME, M.MEM_ID, PE.REG_DATE, D.DEPART_NAME, PE.PRO_NO
+	    FROM DEPARTMENT D
+	    LEFT OUTER JOIN MEMBER M ON(D.DEPART_NO = M.DEPART_NO)
+	    LEFT OUTER JOIN PROJECT_EMP PE ON(M.MEM_ID = PE.MEM_ID)
+	    WHERE 1 = 1
+	    <if test="M.MEM_ID != null and M.MEM_ID != ''">
+	    AND M.MEM_ID NOT IN
+	    <foreach collection="memId" item="item" index="index" open="(" close=")" separator=",">
+			#{item}
+	    </foreach>
+	    </if>
+	    <include refid="empWhere"></include>
+	) T
+	WHERE T.RN = 1
+	AND   T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND
+	      	(#{currentPage} * 10)
+</select>
+
+<!-- 총 직원 수 -->
+<select id="getEmpTotal" parameterType="hashMap" resultType="int">
+	SELECT COUNT(*)
+	FROM MEMBER M
+	JOIN AUTH A ON(M.MEM_ID = A.MEM_ID)
+	JOIN DEPARTMENT D ON(M.DEPART_NO = D.DEPART_NO)
+	WHERE 1 =1
+	AND A.AUTH_NAME = 'ROLE_MANAGER'
+	AND    (
+<!-- 			<if test="keyword!=null and keyword!=''"> -->
+              M.MEM_NAME   LIKE  '%' || #{keyword} || '%' OR
+              D.DEPART_NAME  LIKE  '%' || #{keyword} || '%'
+<!--             </if> -->
+       )
+
+</select>
+
+<!-- 직원 추가 -->
+<insert id="createEmp" parameterType="kr.or.ddit.vo.ProjectEmpVO">
+	INSERT INTO PROJECT_EMP (
+	      MEM_ID
+	    , PRO_NO
+	    , REG_DATE
+	    , MEM_NAME
+	) VALUES (
+	      #{memId}
+	    , #{proNo}
+	    , SYSDATE
+	    , #{memName}
+	)
+</insert>
+
+<!-- 직원 삭제 -->
+<delete id="deleteEmp" parameterType="kr.or.ddit.vo.ProjectEmpVO">
+	DELETE FROM PROJECT_EMP
+	WHERE
+	    MEM_ID = #{memId}
+</delete>
+
+<!-- 그룹 가져오기 -->
+<select id="getGroups" parameterType="kr.or.ddit.vo.GroupsVO" resultType="kr.or.ddit.vo.GroupsVO">
+	SELECT GROUP_NO, GROUP_NAME
+	FROM GROUPS
+</select>
+
+<!-- 참여중 직원 리스트 -->
+<select id="allEmpList" parameterType="kr.or.ddit.vo.ProjectVO" resultType="kr.or.ddit.vo.ProjectVO">
+	SELECT DISTINCT
+	     P.PRO_MANAGER
+	    , P.PRO_TTL
+	    , P.PRO_NO
+	    , PG.MEM_ID
+	    , G.GROUP_NAME
+	FROM
+	    PROJECT P
+	    LEFT JOIN PROJECT_EMP         PE ON ( P.PRO_NO = PE.PRO_NO )
+	    LEFT JOIN PROJECT_GANTTCHARTS PG ON ( P.PRO_NO = PG.PRO_NO )
+	    LEFT JOIN GROUPS G ON ( P.GROUP_NO = G.GROUP_NO )
+	WHERE P.PRO_STATE = 1
+</select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

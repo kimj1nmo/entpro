@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.manageshop.GoodsDataMapper">
+
+    <!-- ✅ 1. 전체 매출 (월별) -->
+    <select id="getTotalSalesByMonth" resultType="map">
+        SELECT 
+            TO_CHAR(OI.ORDER_DATE, 'YYYY-MM') AS month,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_INFO OI
+        JOIN ORDER_LIST OL ON OI.ORDER_NO = OL.ORDER_NO
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        GROUP BY TO_CHAR(OI.ORDER_DATE, 'YYYY-MM')
+        ORDER BY month
+    </select>
+
+    <!-- ✅ 2. 카테고리별 매출 (categoryNo 추가) -->
+    <select id="getSalesByCategory" resultType="map">
+        SELECT 
+            GC.GDS_CTGRY_NO AS categoryNo,  <!-- 📌 categoryNo 추가 -->
+            GC.GDS_CTGRY_NM AS categoryName,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_LIST OL
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        JOIN GDS_CTGRY GC ON G.CTGRY_NO = GC.GDS_CTGRY_NO
+        GROUP BY GC.GDS_CTGRY_NO, GC.GDS_CTGRY_NM  <!-- 📌 categoryNo 추가 -->
+        ORDER BY totalSales DESC
+    </select>
+
+    <!-- ✅ 3. 그룹별 매출 (groupNo 추가) -->
+    <select id="getSalesByGroup" resultType="map">
+        SELECT 
+            GP.GROUP_NO AS groupNo,  <!-- 📌 groupNo 추가 -->
+            GP.GROUP_NAME AS groupName,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_LIST OL
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        JOIN GROUPS GP ON G.GROUP_NO = GP.GROUP_NO
+        GROUP BY GP.GROUP_NO, GP.GROUP_NAME  <!-- 📌 groupNo 추가 -->
+        ORDER BY totalSales DESC
+    </select>
+
+    <!-- ✅ 4. 특정 그룹 클릭 → 월별 매출 -->
+    <select id="getGroupSalesByMonth" parameterType="int" resultType="map">
+        SELECT 
+            TO_CHAR(OI.ORDER_DATE, 'YYYY-MM') AS month,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_INFO OI
+        JOIN ORDER_LIST OL ON OI.ORDER_NO = OL.ORDER_NO
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        WHERE G.GROUP_NO = #{groupNo}
+        GROUP BY TO_CHAR(OI.ORDER_DATE, 'YYYY-MM')
+        ORDER BY month
+    </select>
+
+    <!-- ✅ 5. 특정 카테고리 클릭 → 월별 매출 -->
+    <select id="getCategorySalesByMonth" parameterType="int" resultType="map">
+        SELECT 
+            TO_CHAR(OI.ORDER_DATE, 'YYYY-MM') AS month,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_INFO OI
+        JOIN ORDER_LIST OL ON OI.ORDER_NO = OL.ORDER_NO
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        WHERE G.CTGRY_NO = #{categoryNo}
+        GROUP BY TO_CHAR(OI.ORDER_DATE, 'YYYY-MM')
+        ORDER BY month
+    </select>
+
+    <!-- ✅ 6. 특정 굿즈 클릭 → 월별 매출 -->
+    <select id="getGoodsSalesByMonth" parameterType="int" resultType="map">
+        SELECT 
+            TO_CHAR(OI.ORDER_DATE, 'YYYY-MM') AS month,
+            SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+        FROM ORDER_INFO OI
+        JOIN ORDER_LIST OL ON OI.ORDER_NO = OL.ORDER_NO
+        JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+        WHERE G.GDS_NO = #{gdsNo}
+        GROUP BY TO_CHAR(OI.ORDER_DATE, 'YYYY-MM')
+        ORDER BY month
+    </select>
+
+    <!-- ✅ 7. 전체 카테고리 목록 -->
+    <select id="getAllCategories" resultType="map">
+    SELECT 
+        GDS_CTGRY_NO AS ctgryNo,
+        GDS_CTGRY_NM AS gdsCtgryNm
+    FROM GDS_CTGRY
+    ORDER BY ctgryNo ASC
+</select>
+
+
+    <!-- ✅ 8. 전체 그룹 목록 -->
+    <select id="getAllGroups" resultType="map">
+        SELECT 
+            GROUP_NO AS groupNo,
+            GROUP_NAME AS groupName
+        FROM GROUPS
+        ORDER BY groupNo ASC
+    </select>
+
+
+<!-- ✅ 9. 제일 많이 팔린 물품 TOP 10 -->
+<select id="getTopSellingGoods" resultType="map">
+    SELECT 
+        G.GDS_NO AS gdsNo, 
+        G.GDS_NM AS gdsName,  -- 📌 수정됨: GDS_NAME → GDS_NM
+        SUM(OL.ORDER_LIST_QY) AS totalQuantity,  
+        SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales  
+    FROM ORDER_LIST OL
+    JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+    GROUP BY G.GDS_NO, G.GDS_NM  -- 📌 수정됨: GDS_NAME → GDS_NM
+    ORDER BY totalSales DESC  
+    FETCH FIRST 10 ROWS ONLY  
+</select>
+
+
+
+<!-- ✅ 10. 특정 기간 내 제일 많이 팔린 물품 TOP 10 -->
+<select id="getTopSellingGoodsByDate" parameterType="map" resultType="map">
+    SELECT 
+        G.GDS_NO AS gdsNo, 
+        G.GDS_NM AS gdsName,  -- 📌 수정됨: GDS_NAME → GDS_NM
+        SUM(OL.ORDER_LIST_QY) AS totalQuantity,  
+        SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales  
+    FROM ORDER_INFO OI
+    JOIN ORDER_LIST OL ON OI.ORDER_NO = OL.ORDER_NO
+    JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+    WHERE OI.ORDER_DATE BETWEEN #{startDate} AND #{endDate}  
+    GROUP BY G.GDS_NO, G.GDS_NM  -- 📌 수정됨: GDS_NAME → GDS_NM
+    ORDER BY totalSales DESC  
+    FETCH FIRST 10 ROWS ONLY  
+</select>
+
+<!-- ✅ 특정 카테고리 내 판매율 높은 5개 상품 조회 (수정 완료) -->
+<select id="getTop5SellingGoodsInCategory" parameterType="int" resultType="map">
+    SELECT 
+    G.GDS_NO AS gdsNo, 
+    G.GDS_NM AS gdsName,
+    G.GDS_PRICE AS gdsPrice,
+    SUM(OL.ORDER_LIST_QY) AS totalQuantity,
+    SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+FROM ORDER_LIST OL
+JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+WHERE G.CTGRY_NO = #{categoryNo}  -- 특정 카테고리 내 상품만 조회
+GROUP BY G.GDS_NO, G.GDS_NM, G.GDS_PRICE
+ORDER BY totalSales DESC  -- 총 매출(수익) 기준 정렬
+FETCH FIRST 5 ROWS ONLY  -- 상위 5개 상품만 조회
+
+</select>
+
+
+
+<!-- ✅ 12. 특정 그룹 내 판매율 높은 5개 상품 조회 -->
+<select id="getTop5SellingGoodsInGroup" parameterType="int" resultType="map">
+    SELECT 
+        G.GDS_NO AS gdsNo, 
+        G.GDS_NM AS gdsName,
+        SUM(OL.ORDER_LIST_QY) AS totalQuantity,
+        SUM(OL.ORDER_LIST_QY * G.GDS_PRICE) AS totalSales
+    FROM ORDER_LIST OL
+    JOIN GOODS G ON OL.GDS_NO = G.GDS_NO
+    WHERE G.GROUP_NO = #{groupNo}  -- 특정 그룹 내 상품만 조회
+    GROUP BY G.GDS_NO, G.GDS_NM
+    ORDER BY totalSales DESC  -- 총 매출(수익) 기준 정렬
+    FETCH FIRST 5 ROWS ONLY  -- 상위 5개 상품만 조회
+</select>
+
+
+
+
+</mapper>

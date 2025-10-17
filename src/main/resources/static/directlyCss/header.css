@@ -1,0 +1,73 @@
+@charset "UTF-8";
+
+/* 전자결재 마우스 오버 이벤트 없애기 및 색상 */
+#ePayment {
+    background-color: inherit !important; /* 배경색 제거 */
+    color: #343a40 !important;          /* 텍스트 색상 제거 */
+    cursor: default;                    /* 기본 커서로 설정 */
+    box-shadow: none !important;        /* 그림자 제거 */
+}
+
+/* header.jsp hr 스타일 */
+.ePayment-hr {
+	width: 100%;
+	background-color: rgb(223, 223, 223);
+}
+
+/* 사이드바 전자결재 스타일 */
+#font {
+	font-weight: bolder !important;
+}
+
+/* 전자결재 하위 메뉴 들여쓰기 */
+.in-font {
+	text-indent: 10px !important;
+}
+.btn-hover-effect {
+    background-color: white; /* 기본 배경색 */
+    border-color: rgb(71, 178, 228); /* 기본 테두리색 */
+    color: rgb(71, 178, 228); /* 기본 텍스트 색상 */
+    transition: all 0.3s ease; /* 부드러운 전환 효과 */
+  }
+
+  .btn-hover-effect:hover {
+    background-color: rgb(71, 178, 228); /* 마우스 오버 시 배경색 */
+    color: white; /* 마우스 오버 시 텍스트 색상 */
+  }
+
+/* 사이드바 토글 색상 빼기 */
+.colorSet {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* 클릭 시 색상 */
+.nav-link.active_ {
+  background-color: #343a40 !important; /* 진한 배경색 (다크 그레이) */
+  color: white !important; /* 글자 색은 흰색으로 대비 */
+  font-weight: bold !important;
+}
+
+/* 사이드바 시선 유지 */
+.sidebar {
+  max-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

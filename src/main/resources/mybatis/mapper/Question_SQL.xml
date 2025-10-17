@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.notice.mapper.QuestionMapper">
+
+	<!-- 검색 시 쓸 쿼리 -->
+	<sql id="where">
+	   <if test="keyword!=null and keyword!=''">
+	   AND    (
+	              Q.QSTN_TTL   LIKE  '%' || #{keyword} || '%' OR
+	              Q.QSTN_DATE   LIKE  '%' || #{keyword} || '%'
+	       )
+	   </if>
+	</sql>
+
+	<!-- 모델 주입 -->
+	<select id="questionAllList" resultType="kr.or.ddit.vo.QuestionVO">
+		SELECT QSTN_CTGRY_NO, QSTN_CTGRY_NM
+		FROM QUESTION_CATEGORY
+	</select>
+
+	<!-- 고객센터 리스트 -->
+	<select id="questionList" parameterType="hashMap" resultType="kr.or.ddit.vo.QuestionVO">
+		SELECT T.RNUM, T.QSTN_CTGRY_NO, T.QSTN_CTGRY_NM, T.QSTN_NO, T.QSTN_TTL, T.QSTN_CN
+		          , T.FILE_GROUP_NO, T.QSTN_DATE, T.QSTN_YN, T.MEM_ID
+		FROM (
+		    SELECT ROW_NUMBER() OVER(ORDER BY Q.QSTN_NO DESC) RNUM
+		              , QC.QSTN_CTGRY_NO, QC.QSTN_CTGRY_NM
+		              , Q.QSTN_NO, Q.QSTN_TTL, Q.QSTN_CN, Q.FILE_GROUP_NO
+		              , TO_CHAR(Q.QSTN_DATE, 'YYYY-MM-DD') QSTN_DATE, Q.QSTN_YN, Q.MEM_ID
+		    FROM QUESTION_CATEGORY QC
+		    JOIN QUESTION Q ON(QC.QSTN_CTGRY_NO = Q.QSTN_CTGRY_NO)
+		    WHERE 1 = 1
+		    <if test="qstnCtgryNo!=null and qstnCtgryNo!=''">
+		    AND QC.QSTN_CTGRY_NO = #{qstnCtgryNo}
+		    </if>
+		    AND Q.QSTN_YN != 2
+		    <include refid="where"></include>
+		) T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND
+		        (#{currentPage} * 10)
+		ORDER BY QSTN_YN, T.QSTN_DATE
+	</select>
+
+	<!-- 고객센터 리스트 총 갯수 -->
+	<select id="getTotal" parameterType="kr.or.ddit.vo.QuestionVO" resultType="int">
+		SELECT COUNT(*)
+		FROM QUESTION_CATEGORY QC
+		JOIN QUESTION Q ON(QC.QSTN_CTGRY_NO = Q.QSTN_CTGRY_NO)
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+
+	<!-- 고객센터 생성 -->
+	<insert id="createQuestion" parameterType="kr.or.ddit.vo.QuestionVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="qstnNo">
+	        SELECT NVL(MAX(QSTN_NO),0)+1 FROM QUESTION
+	    </selectKey>
+		INSERT INTO QUESTION (
+			QSTN_NO,
+		    QSTN_CTGRY_NO,
+		    QSTN_TTL,
+		    QSTN_CN,
+		    <if test="fileGroupNo!=null and fileGroupNo!=''">
+		    FILE_GROUP_NO,
+		    </if>
+		    MEM_ID
+		) VALUES (
+			#{qstnNo},
+		    #{qstnCtgryNo},
+		    #{qstnTtl},
+		    #{qstnCn},
+		    <if test="fileGroupNo!=null and fileGroupNo!=''">
+		    #{fileGroupNo},
+		    </if>
+		    #{memId}
+		)
+	</insert>
+
+	<!-- 고객센터 답변 -->
+	<select id="answerQuestion" parameterType="kr.or.ddit.vo.QuestionVO" resultType="kr.or.ddit.vo.QuestionVO">
+		SELECT ANS_TTL, ANS_CN, TO_CHAR(ANS_DATE, 'YYYY-MM-DD') ANS_DATE
+		FROM ANSWER
+		<if test="qstnNo!=null and qstnNo!=''">
+		WHERE QSTN_NO = #{qstnNo}
+		</if>
+	</select>
+
+	<!-- 고객센터 답변 등록 -->
+	<update id="managerAnswer" parameterType="kr.or.ddit.vo.QuestionVO">
+		MERGE
+	   	 INTO ANSWER A
+	 	USING DUAL
+	       ON (A.QSTN_NO = #{qstnNo})
+	 	WHEN MATCHED THEN
+             UPDATE
+                SET
+                   A.ANS_TTL = #{ansTtl}
+                 , A.ANS_CN = #{ansCn}
+                 , A.ANS_MEM_ID = #{ansMemId}
+                 , A.ANS_DATE = SYSDATE
+		WHEN NOT MATCHED THEN
+	         INSERT (A.QSTN_NO, A.ANS_TTL, A.ANS_CN, A.ANS_MEM_ID)
+	       	 VALUES (#{qstnNo}, #{ansTtl}, #{ansCn}, #{ansMemId})
+	</update>
+
+	<!-- 답변 상태 업데이트 -->
+	<update id="questionState" parameterType="kr.or.ddit.vo.QuestionVO">
+		UPDATE QUESTION
+		SET
+		   QSTN_YN = #{qstnYn}
+		WHERE
+		    QSTN_NO = #{qstnNo}
+	</update>
+
+	<!-- 비활성화 -->
+	<update id="deleteAnswer" parameterType="kr.or.ddit.vo.QuestionVO">
+		UPDATE QUESTION
+		SET
+		   QSTN_YN = #{qstnYn}
+		WHERE
+		    QSTN_NO = #{qstnNo}
+	</update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

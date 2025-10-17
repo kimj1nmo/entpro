@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.managecomment.CommentMapper">
+
+	<select id="getGroupName" parameterType="int" resultType="String">
+	SELECT GROUP_NAME
+	FROM GROUPS
+	WHERE GROUP_NO=${groupNo}
+	</select>
+	
+	<select id="listAll" resultType="kr.or.ddit.vo.CommentVO">
+   SELECT 
+        g.GROUP_NAME, 
+        c.COMM_CN,  
+        cm.CMMT_CN,
+        cr.COMM_REG_NICK,
+        cm.mem_Id,
+        cm.CMMT_DATE 
+    FROM 
+        COMMENT_REPY cm
+    left JOIN 
+        community c ON cm.COMM_NO = c.COMM_NO
+    left JOIN 
+        groups g ON c.GROUP_NO = g.GROUP_NO
+    left JOIN 
+        COMMUNITY_REGDATA cr ON c.GROUP_NO = cr.GROUP_NO  AND cm.MEM_ID = cr.MEM_ID
+    ORDER BY 
+        cm.CMMT_DATE DESC
+</select>
+	
+	
+<!-- <select id="listAll" resultType="kr.or.ddit.vo.CommunityVO"> -->
+<!-- select GROUP_NO, COMM_CN, MEM_ID, COMM_WRITE_DATE -->
+<!-- from community -->
+<!-- order by COMM_WRITE_DATE desc -->
+<!-- </select> -->
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

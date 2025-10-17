@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.comm.live.chat.LiveChatMapper">
+
+	<insert id="chatSave" parameterType="kr.or.ddit.vo.LiveChatVO">
+	<selectKey resultType="int" order="BEFORE"
+			keyProperty="liveChatNo">
+         			SELECT NVL(MAX(LIVE_CHAT_NO),0)+1 FROM LIVE_CHAT
+		</selectKey>
+		INSERT INTO LIVE_CHAT (
+		LIVE_CHAT_NO
+		, LIVE_NO
+		, LIVE_CHAT_CN
+		, LIVE_CHAT_TIME
+		) VALUES (
+		  #{liveChatNo}
+		, #{liveNo}
+		, #{liveChatCn}
+		, sysdate
+		)
+	</insert>
+		<insert id="chatSaveForward" parameterType="kr.or.ddit.vo.LiveChatForwardVO">
+	<selectKey resultType="int" order="BEFORE"
+			keyProperty="liveChatForwardNo">
+         			SELECT NVL(MAX(LIVE_CHAT_FORWARD_NO),0)+1 FROM LIVE_CHAT_FORWARD
+		</selectKey>
+	   INSERT INTO LIVE_CHAT_FORWARD (
+    LIVE_CHAT_FORWARD_NO
+    , LIVE_CHAT_NO
+    , MEM_ID
+    ,COMM_REG_NICK
+) VALUES (  #{liveChatForwardNo}
+         ,  #{liveChatNo}
+         , #{memId}
+         , #{commRegNick}
+          )
+	</insert>
+</mapper>

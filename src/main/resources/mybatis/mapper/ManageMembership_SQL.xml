@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.managemembership.ManageMembershipMapper">
+
+	<select id="selectMembershipList" resultType="kr.or.ddit.vo.MembershipVO">
+    SELECT 
+        MEMSHIP_NO, 
+        GROUP_NO, 
+        (SELECT GROUP_NAME FROM GROUPS WHERE GROUPS.GROUP_NO = MEMSHIP.GROUP_NO) AS GROUP_NAME, 
+        MEMSHIP_NM, 
+        MEMSHIP_AMOUNT
+    FROM MEMSHIP
+</select>
+
+	<select id="signMembershipList" resultType="kr.or.ddit.vo.MembershipVO">
+	SELECT
+	    md.memship_data_no,
+	    md.memship_no,
+	    md.comm_reg_no,
+	    md.memship_start_date,
+	    md.memship_end_date,
+	    md.memship_yn,
+	    M.MEMSHIP_NM,
+	    M.MEMSHIP_AMOUNT,
+	    crd.group_no, -- community_regdata에서 group_no 가져옴
+	    CRD.MEM_ID,
+	    G.group_name, -- groups에서 group_name 가져옴
+	    g.group_no,
+	    MEM.MEM_NAME
+	FROM
+	    memship_data md
+	LEFT JOIN community_regdata crd
+	    ON md.comm_reg_no = crd.comm_reg_no -- community_regdata와 memship_data를 연결
+	LEFT JOIN MEMSHIP M
+	    ON MD.memship_no = M.memship_no
+	LEFT JOIN GROUPS G
+	    ON G.GROUP_NO = M.GROUP_NO -- community_regdata와 groups를 연결
+	LEFT JOIN MEMBER MEM
+	    ON MEM.MEM_ID = CRD.MEM_ID
+    </select>
+    
+    <select id="listByGroupNo" resultType="kr.or.ddit.vo.MembershipVO">
+	SELECT
+	    md.memship_data_no,
+	    md.memship_no,
+	    md.comm_reg_no,
+	    md.memship_start_date,
+	    md.memship_end_date,
+	    md.memship_yn,
+	    M.MEMSHIP_NM,
+	    M.MEMSHIP_AMOUNT,
+	    crd.group_no, -- community_regdata에서 group_no 가져옴
+	    CRD.MEM_ID,
+	    G.group_name, -- groups에서 group_name 가져옴
+	    MEM.MEM_NAME
+	FROM
+	    memship_data md
+	LEFT JOIN community_regdata crd
+	    ON md.comm_reg_no = crd.comm_reg_no -- community_regdata와 memship_data를 연결
+	LEFT JOIN MEMSHIP M
+	    ON MD.memship_no = M.memship_no
+	LEFT JOIN GROUPS G
+	    ON G.GROUP_NO = M.GROUP_NO -- community_regdata와 groups를 연결
+	LEFT JOIN MEMBER MEM
+	    ON MEM.MEM_ID = CRD.MEM_ID
+	WHERE G.GROUP_NO =#{groupNo}
+    </select>
+    
+<!-- 멤버십 생성 -->
+    <insert id="insertMemship" parameterType="kr.or.ddit.vo.MembershipVO">
+        <selectKey resultType="int" order="BEFORE" keyProperty="memshipNo">
+            SELECT MEMSHIP_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO memship (
+            memship_no,
+            group_no,
+            memship_nm,
+            memship_amount
+        ) VALUES (
+            #{memshipNo},
+            #{groupNo},
+            #{memshipNm},
+            #{memshipAmount}
+        )
+    </insert>
+
+<select id="getGroupList" resultType="kr.or.ddit.vo.GroupsVO">
+    SELECT 
+        GROUP_NO AS groupNo, 
+        GROUP_NAME AS groupName
+    FROM 
+        GROUPS
+    ORDER BY GROUP_NAME ASC
+</select>
+
+<update id="updateMembership" parameterType="map">
+    UPDATE memship
+    SET
+        memship_nm = #{memshipNm},
+        memship_amount = #{memshipAmount}
+    WHERE
+        memship_no = #{memshipNo}
+        AND group_no = #{groupNo}
+</update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

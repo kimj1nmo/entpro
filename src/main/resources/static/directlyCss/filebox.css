@@ -1,0 +1,42 @@
+@charset "UTF-8";
+
+/* 파일 업로드 이미지 미리보기 */
+  #divImages {
+    display: flex;
+    flex-wrap: wrap; /* 이미지를 여러 줄로 나누기 */
+    gap: 10px; /* 이미지 간격 */
+  }
+
+  .preview-img {
+    width: calc(50% - 10px); /* 한 줄에 두 개씩 */
+    height: auto;
+    border: 1px solid #ddd; /* 테두리 */
+    border-radius: 5px; /* 모서리 둥글게 */
+    box-sizing: border-box;
+  }
+
+/* 파일현황 아이콘 */
+.icon-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 아이콘과 텍스트 사이의 간격 */
+}
+
+.icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #28a745; /* 초록색 */
+  color: white; /* 아이콘 색상 */
+  width: 40px;
+  height: 40px;
+  border-radius: 8px; /* 둥근 모서리 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+  font-size: 20px; /* 아이콘 크기 */
+}
+
+.text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333; /* 텍스트 색상 */
+}

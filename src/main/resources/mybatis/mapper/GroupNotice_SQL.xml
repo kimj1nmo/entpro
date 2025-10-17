@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.GroupNoticeMapper">
+
+	<sql id="where">
+	   <if test="keyword!=null and keyword!=''">
+	   AND    (
+	              GROUP_NOTICE_NM   LIKE  '%' || #{keyword} || '%' OR
+	              REG_DATE   LIKE  '%' || #{keyword} || '%'
+	       )
+	   </if>
+	</sql>
+
+	<!-- 그룹별 공지사항 리스트 -->
+	<select id="getList" parameterType="hashMap" resultType="kr.or.ddit.vo.GroupNoticeVO">
+		SELECT T.RNUM, T.GROUP_NOTICE_NO, T.GROUP_NO, T.GROUP_NAME, T.GROUP_NOTICE_NM, T.GROUP_NOTICE_CN, T.REG_DATE
+		FROM (
+		    SELECT ROW_NUMBER() OVER(ORDER BY GROUP_NOTICE_NO DESC) RNUM
+		         , GN.GROUP_NOTICE_NO, GN.GROUP_NO, GN.GROUP_NOTICE_NM, GN.GROUP_NOTICE_CN, TO_CHAR(GN.REG_DATE, 'YYYY-MM-DD') REG_DATE
+		         , G.GROUP_NAME
+		    FROM GROUPS G
+		    JOIN GROUP_NOTICE GN ON(G.GROUP_NO = GN.GROUP_NO)
+		    WHERE 1 = 1
+		    <if test="groupNo!=null and groupNo!='' and groupNo!=0">
+		    AND GN.GROUP_NO = #{groupNo}
+		    </if>
+		    <include refid="where"></include>
+		) T
+		WHERE T.RNUM BETWEEN (#{currentPage} * 10) - (10 - 1) AND
+				(#{currentPage} * 10)
+	</select>
+
+	<!-- 그룹별 공지사항 리스트 총 갯수 -->
+	<select id="getTotal" parameterType="kr.or.ddit.vo.GroupNoticeVO" resultType="int">
+		SELECT COUNT(*)
+		FROM GROUPS G
+		JOIN GROUP_NOTICE GN ON(G.GROUP_NO = GN.GROUP_NO)
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+
+	<!-- 모든 공지사항 리스트 -->
+	<select id="getAllList" resultType="kr.or.ddit.vo.GroupNoticeVO">
+		SELECT DISTINCT G.GROUP_NAME, G.GROUP_NO
+		FROM GROUPS G
+		LEFT JOIN GROUP_NOTICE GN ON(G.GROUP_NO = GN.GROUP_NO)
+	</select>
+
+	<!-- 그룹공지사항 생성 -->
+	<insert id="createGroupNotice" parameterType="kr.or.ddit.vo.GroupNoticeVO">
+		<selectKey resultType="int" order="BEFORE" keyProperty="groupNoticeNo">
+	        SELECT NVL(MAX(GROUP_NOTICE_NO),0)+1 FROM GROUP_NOTICE
+	    </selectKey>
+		INSERT INTO GROUP_NOTICE (
+		    GROUP_NO
+		    , GROUP_NOTICE_NM
+		    , GROUP_NOTICE_CN
+		    , GROUP_NOTICE_NO
+		) VALUES (
+		    #{groupNo}
+		    , #{groupNoticeNm}
+		    , #{groupNoticeCn}
+		    , #{groupNoticeNo}
+		)
+	</insert>
+
+	<delete id="deleteGroupNotice" parameterType="int">
+		DELETE FROM GROUP_NOTICE
+		WHERE
+		    GROUP_NOTICE_NO = #{groupNoticeNo}
+	</delete>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

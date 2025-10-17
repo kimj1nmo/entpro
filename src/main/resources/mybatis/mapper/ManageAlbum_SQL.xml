@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="kr.or.ddit.page.companypage.managealbum.ManageAlbumMapper">
+
+
+	<sql id="where">
+			<if test="keyword!=null and keyword!=''">
+			AND (
+			AL.ALBUM_TTL LIKE '%' || #{keyword} || '%' OR
+			A.ARTIST_NAME LIKE '%' || #{keyword} || '%' OR
+			 G.GROUP_NAME LIKE '%'
+			|| #{keyword} || '%'
+			)
+
+		</if>
+	</sql>
+
+	<resultMap type="kr.or.ddit.vo.AlbumVO" id="albumMap">
+		<result property="albumNo" column="ALBUM_NO" />
+		<result property="artistNo" column="ARTIST_NO"/>
+		<result property="groupNo" column="GROUP_NO" />
+<!-- 		<result property="artistName" column="ARTIST_NAME"/> -->
+		<result property="groupName" column="GROUP_NAME" />
+		<result property="albumTtl" column="ALBUM_TTL" />
+		<result property="albumDate" column="ALBUM_DATE" />
+		<result property="albumType" column="ALBUM_TYPE" />
+		<result property="albumAgency" column="ALBUM_AGENCY" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="albumRegDate" column="ALBUM_REG_DATE" />
+		<result property="albumInputter" column="ALBUM_INPUTTER" />
+		<association property="fileGroupVO" resultMap="fileGroupMap">
+		</association>
+    <collection property="artistNameList" column="ARTIST_NAME" javaType="java.util.ArrayList"/>
+
+    <collection property="soundInfoList" resultMap="soundMap" />
+	</resultMap>
+
+
+		<!-- 엘범 정보 -->
+	<resultMap type="kr.or.ddit.vo.SoundInfoVO" id="soundMap">
+		<result property="soundInfoNo" column="SOUND_INFO_NO"/>
+		<result property="albumNo" column="ALBUM_NO"/>
+		<result property="soundInfoTtl" column="SOUND_INFO_TTL"/>
+		<result property="soundInfoPlaytime" column="SOUND_INFO_PLAYTIME"/>
+		<result property="soundSourceLyrics" column="SOUND_SOURCE_LYRICS"/>
+		<result property="soundSourceComposer" column="SOUND_SOURCE_COMPOSER"/>
+	</resultMap>
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+	<!-- 총 페이지 수 -->
+	<select id="getTotal" parameterType="hashMap" resultType="int">
+	SELECT
+         COUNT(DISTINCT AL.ALBUM_TTL)
+		FROM ALBUM AL
+		LEFT JOIN GROUPS G ON G.GROUP_NO = AL.GROUP_NO
+		LEFT JOIN GROUP_PSITN GP ON G.GROUP_NO = GP.GROUP_NO
+		LEFT JOIN ARTIST A ON A.ARTIST_NO = AL.ARTIST_NO
+		WHERE 1 = 1
+		<include refid="where"></include>
+	</select>
+
+	<select id="list" parameterType="hashMap" resultMap="albumMap">
+		SELECT
+		T.RNUM, T.ARTIST_NO, T.ARTIST_NAME, T.ARTIST_PROFILE,
+		T.ARTIST_BIRTH,T.GROUP_NO, T.GROUP_NAME, T.GROUP_BIRTH
+		,T.ARTIST_INTRCN, T.MEM_ID, T.FILE_GROUP_NO
+		, T.FILE_REGDATE
+		,
+		T.FILE_SN, T.FILE_ORIGINAL_NAME, T.FILE_SAVE_NAME
+		,
+		T.FILE_SAVE_LOCATE,T.FILE_SIZE, T.FILE_EXT, T.FILE_MIME,
+		T.FILE_FANCYSIZE
+		, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER()
+		OVER(ORDER BY A.ARTIST_NO DESC) RNUM
+		, GP.REG_DATE,
+		GP.GROUP_PSITN_YN,G.GROUP_NO, G.GROUP_NAME
+		, G.GROUP_BIRTH,
+		G.GROUP_DSPGN, G.GROUP_INTRCN, A.ARTIST_NO
+		, A.ARTIST_NAME,
+		A.ARTIST_PROFILE, A.ARTIST_BIRTH,A.ARTIST_INTRCN
+		, A.MEM_ID,
+		A.FILE_GROUP_NO
+		, FG.FILE_REGDATE
+		, FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,
+		FD.FILE_MIME,
+		FD.FILE_FANCYSIZE
+		, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM ARTIST A left join
+		GROUP_PSITN GP ON A.ARTIST_NO=GP.ARTIST_NO
+		left
+		join GROUPS G ON
+		G.GROUP_NO=GP.GROUP_NO
+		LEFT OUTER JOIN FILE_GROUP FG ON
+		A.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON
+		FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE 1 = 1
+
+
+		AND (
+		A.ARTIST_NAME LIKE
+		'%' ||
+		#{keyword} || '%' OR
+		A.ARTIST_PROFILE LIKE '%' || #{keyword} ||
+		'%' OR
+		A.FILE_GROUP_NO LIKE
+		'%'
+		|| #{keyword} || '%'
+
+		)
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+	</select>
+
+	<select id="listSort" parameterType="hashMap"
+		resultMap="albumMap">
+			SELECT
+		T.RNUM,
+        T.ALBUM_NO, T.GROUP_NO, T.ALBUM_TTL, T.ALBUM_DATE, T.ALBUM_TYPE, T.ALBUM_AGENCY
+        , T.FILE_GROUP_NO, T.ALBUM_REG_DATE, T.ALBUM_INPUTTER, T.ARTIST_NO
+        ,T.SOUND_INFO_NO, T.SOUND_INFO_TTL, T.SOUND_INFO_PLAYTIME
+        , T.SOUND_SOURCE_LYRICS, T.SOUND_SOURCE_COMPOSER
+		,T.REG_DATE, T.GROUP_PSITN_YN, T.GROUP_NAME
+		,T.GROUP_BIRTH, T.GROUP_DSPGN, T.GROUP_INTRCN
+		,T.ARTIST_NAME, T.ARTIST_PROFILE, T.ARTIST_BIRTH, T.ARTIST_INTRCN
+		,T.MEM_ID
+		,T.FILE_REGDATE, T.FILE_SN, T.FILE_ORIGINAL_NAME
+		,T.FILE_SAVE_NAME, T.FILE_SAVE_LOCATE, T.FILE_SIZE, T.FILE_EXT
+		,T.FILE_MIME, T.FILE_FANCYSIZE, T.FILE_SAVE_DATE, T.FILE_DOWNCOUNT
+		FROM
+		(
+		SELECT
+		ROW_NUMBER() OVER (
+		   <if test="sortName == 'albumNo'">
+                ORDER BY AL.ALBUM_NO
+            </if>
+            <if test="sortName == 'albumTtl'">
+                ORDER BY AL.ALBUM_TTL
+            </if>
+            <if test="sortName == 'groupName'">
+                ORDER BY AL.GROUP_NAME
+            </if>
+            <if test="sortName == 'artistName'">
+                ORDER BY A.ARTIST_NAME
+            </if>
+            <if test="sortName == 'albumInputter'">
+                ORDER BY AL.ALBUM_INPUTTER
+            </if>
+            <if test="sortName == 'ALBUM_REG_DATE'">
+                ORDER BY AL.ALBUM_REG_DATE
+            </if>
+            <if test="sortName == 'albumType'">
+                ORDER BY AL.ALBUM_TYPE
+            </if>
+               <if test="sortName == 'albumRegDate'">
+                ORDER BY AL.ALBUM_DATE
+            </if>
+            <if test="mode == 0">
+                asc
+            </if>
+            <if test="mode == 1">
+                desc
+            </if>
+		) AS RNUM,
+        AL.ALBUM_NO, AL.GROUP_NO, AL.ALBUM_TTL, AL.ALBUM_DATE, AL.ALBUM_TYPE, AL.ALBUM_AGENCY
+        , AL.FILE_GROUP_NO, AL.ALBUM_REG_DATE, AL.ALBUM_INPUTTER, AL.ARTIST_NO
+        ,SI.SOUND_INFO_NO, SI.SOUND_INFO_TTL, SI.SOUND_INFO_PLAYTIME
+        , SI.SOUND_SOURCE_LYRICS, SI.SOUND_SOURCE_COMPOSER
+		,GP.REG_DATE, GP.GROUP_PSITN_YN, G.GROUP_NAME
+		,G.GROUP_BIRTH, G.GROUP_DSPGN, G.GROUP_INTRCN
+		,A.ARTIST_NAME, A.ARTIST_PROFILE, A.ARTIST_BIRTH, A.ARTIST_INTRCN
+		,A.MEM_ID
+		,FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME
+		,FD.FILE_SAVE_NAME, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT
+		,FD.FILE_MIME, FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM ALBUM AL
+                LEFT JOIN SOUND_INFO SI ON SI.ALBUM_NO = AL.ALBUM_NO
+                LEFT JOIN GROUPS G ON G.GROUP_NO = AL.GROUP_NO
+        		LEFT JOIN GROUP_PSITN GP ON G.GROUP_NO = GP.GROUP_NO
+                LEFT JOIN ARTIST A ON A.ARTIST_NO = gp.ARTIST_NO
+		LEFT OUTER JOIN FILE_GROUP FG ON A.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+
+		WHERE 1 = 1
+		AND (
+		AL.ALBUM_TTL LIKE '%' || #{keyword} || '%'
+		OR AL.ARTIST_NO LIKE '%' || #{keyword} || '%'
+		OR AL.GROUP_NO LIKE '%' || #{keyword} || '%'
+		)
+
+		) T
+		WHERE T.RNUM
+		BETWEEN
+		(#{currentPage} * 10) -
+		(10 - 1) AND
+		(#{currentPage} *
+		10)
+
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

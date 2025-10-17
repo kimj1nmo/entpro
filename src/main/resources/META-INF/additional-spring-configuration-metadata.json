@@ -1,0 +1,22 @@
+{"properties": [
+  {
+    "name": "api.translation.key",
+    "type": "java.lang.String",
+    "description": "A description for 'api.translation.key'"
+  },
+  {
+    "name": "api.translation.url",
+    "type": "java.lang.String",
+    "description": "A description for 'api.translation.url'"
+  },
+  {
+    "name": "google.cloud.credentials.file",
+    "type": "java.lang.String",
+    "description": "A description for 'google.cloud.credentials.file'"
+  },
+  {
+    "name": "google.credentials.path",
+    "type": "java.lang.String",
+    "description": "A description for 'google.credentials.path'"
+  }
+]}

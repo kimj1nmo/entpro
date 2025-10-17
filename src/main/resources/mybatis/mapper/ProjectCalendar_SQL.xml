@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.managerpage.mapper.ProjectCalendarMapper">
+	
+	<!-- 특정 캘린더 -->
+	<select id="empCalendar" parameterType="kr.or.ddit.vo.ProjectCalendarVO" resultType="kr.or.ddit.vo.ProjectCalendarVO">
+		SELECT P.PRO_NO, P. PRO_TTL, P.PRO_REG_DATE, P.PRO_DEADLINE, P.PRO_STATE
+		          , PC.PRO_BCRN_COLOR, PC.PRO_TEXT_COLOR
+		FROM PROJECT P
+		LEFT OUTER JOIN PROJECT_CLDR PC ON(P.PRO_NO = PC.PRO_NO)
+		WHERE P.PRO_NO = #{proNo}
+	</select>
+	
+	<select id="getEmpCalendar" parameterType="hashMap" resultType="kr.or.ddit.vo.ProjectCalendarVO">
+		SELECT P.PRO_NO, P. PRO_TTL, TO_CHAR(P.PRO_REG_DATE, 'YYYY-MM-DD') PRO_REG_DATE, TO_CHAR(P.PRO_DEADLINE, 'YYYY-MM-DD') PRO_DEADLINE, P.PRO_STATE
+		          , PC.PRO_BCRN_COLOR, PC.PRO_TEXT_COLOR
+		FROM PROJECT P
+		LEFT OUTER JOIN PROJECT_CLDR PC ON(P.PRO_NO = PC.PRO_NO)
+	</select>
+	
+</mapper>

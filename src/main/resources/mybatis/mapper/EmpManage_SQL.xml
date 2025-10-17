@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.empmanage.EmpManageMapper">
+<sql id="where">
+	<if test="keyword!=null and keyword!=''">
+		AND (
+			M.MEM_ID   LIKE  '%' || #{keyword} || '%' OR
+			M.MEM_NAME   LIKE  '%' || #{keyword} || '%' OR
+			M.MEM_GENDER   LIKE  '%' || #{keyword} || '%' OR
+			M.MEM_REG_DATE   LIKE  '%' || #{keyword} || '%' OR
+			M.MEM_EMAIL   LIKE  '%' || #{keyword} || '%' OR
+			M.POS_NO   LIKE  '%' || #{keyword} || '%' OR
+			M.MEM_TEL   LIKE  '%' || #{keyword} || '%'
+		)
+	</if>
+</sql>
+
+<!-- 직원 리스트 -->
+<select id="list" parameterType="hashMap" resultType="kr.or.ddit.vo.MemberVO">
+	SELECT
+	      T.RNUM
+	    , T.MEM_ID
+	    , T.MEM_PW
+	    , T.MEM_ENABLE
+	    , T.MEM_NAME
+	    , T.MEM_GENDER
+	    , T.MEM_REG_DATE
+	    , T.MEM_EMAIL
+	    , T.POS_NO
+	    , T.MEM_TEL
+	    , T.MEM_BIR
+	    , T.DEPART_NO
+	    , NVL(T.POS_NAME, '미분류') POS_NAME
+	    , T.DEPART_NAME
+	FROM
+	    (
+	        SELECT
+	            ROW_NUMBER()
+	            OVER(
+	                ORDER BY
+	                    M.MEM_ENABLE DESC, M.MEM_REG_DATE DESC
+	            ) RNUM
+	            , M.MEM_ID
+	            , M.DEPART_NO
+	            , SUBSTR(M.MEM_PW, 1, 5) || '...' MEM_PW
+	            , M.MEM_ENABLE
+	            , M.MEM_NAME
+	            , M.MEM_GENDER
+	            , TO_CHAR(M.MEM_REG_DATE, 'YYYY-MM-DD') MEM_REG_DATE
+	            , M.MEM_EMAIL
+	            , M.POS_NO
+	            , M.MEM_TEL
+	            , M.MEM_BIR
+	            , P.POS_NAME
+	            , D.DEPART_NAME
+	        FROM
+	            MEMBER M
+	            JOIN AUTH A ON ( M.MEM_ID = A.MEM_ID )
+	            LEFT JOIN POSITION P ON(M.POS_NO = P.POS_NO)
+	            LEFT JOIN DEPARTMENT D ON(M.DEPART_NO = D.DEPART_NO)
+	        WHERE
+	            1 = 1
+	            AND A.AUTH_NAME = 'ROLE_MANAGER'
+	            <if test="departNo!=null and departNo!=''">
+	            AND M.DEPART_NO = #{departNo}
+	            </if>
+				<include refid="where"></include>
+	    ) T
+	WHERE
+	    T.RNUM BETWEEN ( #{currentPage} * 10 ) - ( 10 - 1 ) AND ( #{currentPage} * 10 )
+</select>
+
+<!-- 총 직원 수 -->
+<select id="getTotal" parameterType="kr.or.ddit.vo.MemberVO" resultType="int">
+		SELECT
+		    COUNT(*)
+		FROM
+		    MEMBER M
+		    JOIN AUTH A ON ( M.MEM_ID = A.MEM_ID )
+		    LEFT JOIN POSITION P ON(M.POS_NO = P.POS_NO)
+		WHERE
+		    1 = 1
+		    AND A.AUTH_NAME = 'ROLE_MANAGER'
+		    <if test="departNo!=null and departNo!=''">
+            AND M.DEPART_NO = #{departNo}
+            </if>
+			<include refid="where"></include>
+</select>
+
+<!-- 부서 리스트 -->
+<select id="departmentList" parameterType="kr.or.ddit.vo.DepartmentVO" resultType="kr.or.ddit.vo.DepartmentVO">
+	SELECT
+	    *
+	FROM
+	    DEPARTMENT
+</select>
+
+<!-- 직책 리스트 -->
+<select id="positionList" parameterType="kr.or.ddit.vo.PositionVO" resultType="kr.or.ddit.vo.PositionVO">
+	SELECT
+	    *
+	FROM
+		POSITION
+</select>
+
+<!-- 암호화된 비밀번호와 함께 멤버등록 -->
+<insert id="changePasswd" parameterType="kr.or.ddit.vo.MemberVO">
+	INSERT INTO MEMBER (
+	    MEM_ID,
+	    DEPART_NO,
+	    MEM_PW,
+	    MEM_ENABLE,
+	    MEM_NAME,
+	    MEM_GENDER,
+	    MEM_REG_DATE,
+	    MEM_EMAIL,
+	    MEM_TEL,
+	    POS_NO
+	) VALUES (
+	    #{memId},
+	    #{departNo},
+	    #{memPw},
+	    'y',
+	    #{memName},
+	    #{memGender},
+	    SYSDATE,
+	    #{memEmail},
+	    #{memTel},
+	    #{posNo}
+	)
+</insert>
+
+<!-- 권한 추가 -->
+<insert id="saveAuth" parameterType="kr.or.ddit.vo.MemberVO">
+	INSERT INTO AUTH(MEM_ID,
+	AUTH_NAME)
+	VALUES(#{memId},'ROLE_MANAGER')
+</insert>
+
+<!-- 아이디 중복 체크 -->
+<select id="idDupChk" parameterType="kr.or.ddit.vo.MemberVO" resultType="int">
+	SELECT COUNT(*)
+	FROM MEMBER
+	WHERE MEM_ID = #{memId}
+</select>
+
+<!-- 삭제(비활성화) 처리 -->
+<update id="deleteMem" parameterType="kr.or.ddit.vo.MemberVO">
+	UPDATE MEMBER
+	SET
+	    MEM_ENABLE = 'n'
+	WHERE
+	    MEM_ID = #{memId}
+</update>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+

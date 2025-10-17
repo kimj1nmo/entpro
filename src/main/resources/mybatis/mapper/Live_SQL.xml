@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.page.comm.live.LiveMapper">
+	<resultMap type="kr.or.ddit.vo.LiveVO" id="liveMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="sumFileGroupNo" column="SUM_FILE_GROUP_NO" />
+		<result property="liveNo" column="LIVE_NO" />
+		<result property="memshipState" column="MEMSHIP_STATE" />
+		<result property="liveName" column="LIVE_NAME" />
+		<result property="liveView" column="LIVE_VIEW" />
+		<result property="liveDate" column="LIVE_DATE" />
+		<result property="memId" column="MEM_ID" />
+		<result property="liveStatus" column="LIVE_STATUS" />
+		<result property="commRegNo" column="COMM_REG_NO" />
+		<result property="commRegJoin" column="COMM_REG_JOIN" />
+		<result property="commRegNick" column="COMM_REG_NICK" />
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+		<association property="vodVO" resultMap="vodMap"></association>
+	</resultMap>
+
+	<!-- 라이브 : 동영상 = 1 : 1 -->
+	<resultMap type="kr.or.ddit.vo.VodVO" id="vodMap">
+		<result property="liveNo" column="LIVE_NO" />
+		<result property="vodType" column="VOD_TYPE" />
+		<result property="groupNo" column="GROUP_NO" />
+		<result property="vodNo" column="VOD_NO" />
+		<result property="vodName" column="VOD_NAME" />
+		<result property="memId" column="MEM_ID" />
+		<result property="vodPlaytime" column="VOD_PLAYTIME" />
+		<result property="vodView" column="VOD_VIEW" />
+		<result property="vodPath" column="VOD_PATH" />
+		<result property="commRegNo" column="COMM_REG_NO" />
+		<result property="commRegJoin" column="COMM_REG_JOIN" />
+		<result property="commRegNick" column="COMM_REG_NICK" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+	</resultMap>
+
+	<!-- 파일그룹 : 파일상세 = 1 : N -->
+	<resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileRegdate" column="FILE_REGDATE" />
+		<collection property="fileDetailVOList"
+			resultMap="fileDetailMap"></collection>
+	</resultMap>
+
+	<resultMap type="kr.or.ddit.vo.FileDetailVO"
+		id="fileDetailMap">
+		<result property="fileSn" column="FILE_SN" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="fileOriginalName" column="FILE_ORIGINAL_NAME" />
+		<result property="fileSaveName" column="FILE_SAVE_NAME" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<result property="fileSize" column="FILE_SIZE" />
+		<result property="fileExt" column="FILE_EXT" />
+		<result property="fileMime" column="FILE_MIME" />
+		<result property="fileFancysize" column="FILE_FANCYSIZE" />
+		<result property="fileSaveDate" column="FILE_SAVE_DATE" />
+		<result property="fileDowncount" column="FILE_DOWNCOUNT" />
+	</resultMap>
+
+
+	<!-- 라이브 키 발급 -->
+	<select id="getKeyNo" resultType="int">
+		SELECT NVL(COUNT(*),0)+1
+		FROM
+		LIVE
+	</select>
+	<!-- 해당 라이브의번호에 해당맴버가 좋아요를 눌렀는지 체크한다 -->
+	<select id="getLiveLikeChk"
+		parameterType="kr.or.ddit.vo.LiveLikeVO"
+		resultType="kr.or.ddit.vo.LiveLikeVO">
+		SELECT *
+		FROM LIVE_LIKE
+		WHERE LIVE_NO = #{liveNo}
+		AND
+		MEM_ID=#{memId}
+	</select>
+
+	<select id="getLiveInfo" parameterType="int" resultMap="liveMap">
+		SELECT
+		L.LIVE_NO
+		,L. MEMSHIP_STATE
+		, L.LIVE_NAME
+		, L.LIVE_VIEW
+		,
+		L.LIVE_DATE
+		,L.MEM_ID
+		,COMM_REG_NO, GROUP_NO, COMM_REG_JOIN, COMM_REG_NICK
+		, CR.FILE_GROUP_NO
+		, FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		,
+		FD.FILE_SAVE_LOCATE, FD.FILE_SIZE,
+		FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE,
+		FD.FILE_DOWNCOUNT
+
+		FROM
+		LIVE L
+		LEFT
+		OUTER JOIN COMMUNITY_REGDATA CR ON CR.MEM_ID=L.MEM_ID
+		LEFT OUTER JOIN
+		FILE_GROUP FG ON CR.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT
+		OUTER JOIN
+		FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+
+
+		WHERE L.LIVE_NO=#{streamCode}
+		<!-- AND CR.ARTIST_NO=#{artistNo} -->
+	</select>
+
+	<select id="getVodInfo" parameterType="int" resultMap="vodMap">
+		SELECT
+		v.VOD_NO, v.VOD_NAME, v.MEM_ID, v.VOD_PLAYTIME, v.VOD_VIEW,
+		v.VOD_PATH, v.LIVE_NO, v.VOD_TYPE, v.VOD_STATUS
+		,COMM_REG_NO, GROUP_NO, COMM_REG_JOIN, COMM_REG_NICK
+		, CR.FILE_GROUP_NO
+		, FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		,
+		FD.FILE_SAVE_LOCATE, FD.FILE_SIZE,
+		FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE,
+		FD.FILE_DOWNCOUNT
+
+		FROM
+		vod V
+		LEFT OUTER JOIN COMMUNITY_REGDATA CR ON CR.MEM_ID=v.MEM_ID
+		LEFT OUTER JOIN
+		FILE_GROUP FG ON CR.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT
+		OUTER JOIN
+		FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE V.LIVE_NO=#{streamCode}
+
+		<!-- AND CR.ARTIST_NO=#{artistNo} -->
+	</select>
+	<!-- //해당 라이브의번호에 해당맴버가 좋아요를 누룬것을 저장 -->
+	<insert id="liveLikeIns"
+		parameterType="kr.or.ddit.vo.LiveLikeVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="liveLikeNo">
+			SELECT NVL(MAX(LIVE_LIKE_NO),0)+1 FROM LIVE_LIKE
+		</selectKey>
+		MERGE
+		INTO LIVE_LIKE L
+		USING dual
+		ON (L.LIVE_NO = #{liveNo} AND mem_id=
+		#{memId} )
+		WHEN MATCHED THEN
+		UPDATE
+		SET L.LIVE_LIKE_YN =
+		<choose>
+			<when test="liveLikeYn eq 0">
+				1
+			</when>
+			<when test="liveLikeYn eq 1">
+				0
+			</when>
+		</choose>
+		WHEN NOT MATCHED THEN
+		INSERT (L.LIVE_LIKE_NO, L.LIVE_NO, L.MEM_ID,
+		L.LIVE_LIKE_YN)
+		VALUES (#{liveLikeNo}, #{liveNo}, #{memId}, 1)
+
+	</insert>
+
+	<!-- //해당 그룹 넘버의 live 리스트 가져오기 -->
+	<select id="liveList" parameterType="int" resultMap="liveMap">
+<!-- 	<select id="liveList" parameterType="int" -->
+<!-- 		resultType="kr.or.ddit.vo.LiveVO"> -->
+		SELECT
+		L.LIVE_NO
+		, L.MEMSHIP_STATE
+		, L.LIVE_NAME
+		, L.LIVE_VIEW
+		, L.LIVE_DATE
+		,
+		L.MEM_ID
+		, GP.GROUP_NO
+		, GP.ARTIST_NO
+		, GP.REG_DATE
+		,
+		GP.GROUP_PSITN_YN
+
+		,CR.COMM_REG_NO, CR.COMM_REG_JOIN, CR.COMM_REG_NICK, L.FILE_GROUP_NO
+
+		,
+		FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		,
+		FD.FILE_SAVE_LOCATE, FD.FILE_SIZE,
+		FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE,
+		FD.FILE_DOWNCOUNT
+
+		,V.VOD_NO, V.VOD_NAME, V.VOD_PLAYTIME, V.VOD_VIEW, V.VOD_PATH, V.VOD_TYPE
+		FROM
+		LIVE L LEFT JOIN ARTIST A ON L.MEM_ID= A.MEM_ID
+		LEFT JOIN GROUP_PSITN
+		GP ON GP.ARTIST_NO= A.ARTIST_NO
+		LEFT  JOIN VOD V ON L.LIVE_NO= V.LIVE_NO
+		LEFT OUTER JOIN COMMUNITY_REGDATA CR ON L.MEM_ID= CR.MEM_ID
+		LEFT OUTER JOIN
+		FILE_GROUP FG ON l.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT
+		OUTER JOIN
+		FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+
+		WHERE
+		GP.GROUP_NO=#{groupNo}
+		AND CR.GROUP_NO=#{groupNo}
+		AND LIVE_STATUS=0
+		AND VOD_STATUS=0
+
+		ORDER BY L.LIVE_DATE DESC
+
+	</select>
+	<!-- //해당 그룹 넘버의 이전 live 리스트 가져오기 -->
+	<select id="oldLiveList" parameterType="int" resultMap="liveMap">
+		SELECT
+		L.LIVE_NO
+		, L.MEMSHIP_STATE
+		, L.LIVE_NAME
+		, L.LIVE_VIEW
+		, L.LIVE_DATE
+		,
+		L.MEM_ID
+		, GP.GROUP_NO
+		, GP.ARTIST_NO
+		, GP.REG_DATE
+		,
+		GP.GROUP_PSITN_YN
+
+		,CR.COMM_REG_NO, CR.COMM_REG_JOIN, CR.COMM_REG_NICK, L.FILE_GROUP_NO
+
+		,
+		FD.FILE_SN, FD.FILE_ORIGINAL_NAME,
+		FD.FILE_SAVE_NAME
+		,
+		FD.FILE_SAVE_LOCATE, FD.FILE_SIZE,
+		FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE,
+		FD.FILE_DOWNCOUNT
+
+		,V.VOD_NO, V.VOD_NAME, V.VOD_PLAYTIME, V.VOD_VIEW, V.VOD_PATH, V.VOD_TYPE
+		FROM
+		LIVE L LEFT JOIN ARTIST A ON L.MEM_ID= A.MEM_ID
+		LEFT JOIN GROUP_PSITN
+		GP ON GP.ARTIST_NO= A.ARTIST_NO
+		LEFT  JOIN VOD V ON L.LIVE_NO= V.LIVE_NO
+		LEFT OUTER JOIN COMMUNITY_REGDATA CR ON L.MEM_ID= CR.MEM_ID
+		LEFT OUTER JOIN
+		FILE_GROUP FG ON l.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT
+		OUTER JOIN
+		FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+
+		WHERE
+		GP.GROUP_NO=#{groupNo}
+		AND CR.GROUP_NO=#{groupNo}
+		AND LIVE_STATUS=1
+				AND VOD_STATUS=0
+		ORDER BY L.LIVE_DATE DESC
+
+	</select>
+	<!-- //해당 그룹 넘버의 vod 리스트 가져오기 -->
+	<select id="VodList" parameterType="int"
+		resultType="kr.or.ddit.vo.VodVO">
+		SELECT
+		V.VOD_NO
+		,V.VOD_NAME
+		,V.MEM_ID
+		,V.VOD_PLAYTIME
+		,V.VOD_VIEW
+		,V.VOD_PATH
+		,
+		GP.REG_DATE
+		, GP.GROUP_PSITN_YN
+		FROM
+		VOD V LEFT
+		JOIN ARTIST A ON
+		A.MEM_ID= V.MEM_ID
+		LEFT JOIN GROUP_PSITN GP ON
+		GP.ARTIST_NO=
+		A.ARTIST_NO
+		WHERE GP.GROUP_NO=#{groupNo}
+						AND VOD_STATUS=0
+
+	</select>
+	<!-- //이전 채팅 내역 가져오기 public List<LiveChatVO> chatSetAjax(int streamCode); -->
+	<select id="chatSetAjax" parameterType="int"
+		resultType="kr.or.ddit.vo.LiveChatVO">
+
+		SELECT
+		LCF.live_chat_forward_no
+		, LCF.live_chat_no
+		,LCF.mem_id
+		,LCF.COMM_REG_NICK
+		, LC.LIVE_CHAT_NO, LC.LIVE_NO,
+		LC.LIVE_CHAT_CN,
+		LC.LIVE_CHAT_TIME
+		FROM
+		live_chat_forward LCF
+		join
+		live_chat LC on
+		LC.live_chat_no= LCF.live_chat_no
+		WHERE
+		LIVE_NO=#{streamCode}
+		ORDER BY
+		LIVE_CHAT_TIME ASC
+
+	</select>
+	<!-- //새로운 라이브방 만들기 public LiveVO createLiveAjax(LiveVO liveVO); -->
+	<insert id="createLiveAjax" parameterType="liveVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="liveNo">
+			SELECT NVL(MAX(LIVE_NO),0)+1 FROM LIVE
+		</selectKey>
+		INSERT INTO LIVE (
+		LIVE_NO
+		, MEMSHIP_STATE
+		, LIVE_NAME
+		, LIVE_VIEW
+		,
+		LIVE_DATE
+		, MEM_ID
+		, LIVE_STATUS
+		, FILE_GROUP_NO
+		) VALUES ( #{liveNo}
+		,
+		#{memshipState}
+		, #{liveName}
+		, 0
+		, sysdate
+		, #{memId}
+		, 0
+		, #{fileGroupNo})
+	</insert>
+	<update id="endLiveAjax" parameterType="kr.or.ddit.vo.LiveVO">
+		update LIVE
+		set
+		LIVE_STATUS = 1
+
+		where
+		LIVE_NO = #{liveNo}
+
+	</update>
+	<select id="getSumnail" parameterType="kr.or.ddit.vo.VodVO"
+		resultMap="vodMap">
+
+		select
+		V.VOD_NO
+		, V.VOD_NAME
+		, V.MEM_ID
+		, V.VOD_PLAYTIME
+		, V.VOD_VIEW
+		, V.VOD_PATH
+		, V.LIVE_NO
+		, V.VOD_TYPE
+		, V.VOD_STATUS
+		, V.FILE_GROUP_NO
+		, FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM
+		VOD V
+		LEFT OUTER JOIN FILE_GROUP FG ON V.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		WHERE V.LIVE_NO=#{liveNo}
+	</select>
+
+	<select id="getArtistAuthChk" parameterType="hashMap"
+		resultType="Integer">
+		SELECT
+		CASE
+		WHEN m.mem_id = #{memId}
+		AND A.mem_Id IS NOT NULL
+		AND gp.ARTIST_NO IS NOT NULL
+		AND gp.group_no = #{groupNo}
+		THEN 1
+		ELSE 0
+		END AS result
+		FROM
+		member m
+		LEFT JOIN ARTIST A ON A.mem_Id = m.mem_Id
+		LEFT JOIN GROUP_PSITN gp ON A.ARTIST_NO = gp.ARTIST_NO
+		WHERE
+		m.mem_id = #{memId}
+	</select>
+	<insert id="createVod" parameterType="kr.or.ddit.vo.LiveVO">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="vodNo">
+			SELECT NVL(MAX(VOD_NO),0)+1 FROM VOD
+		</selectKey>
+		INSERT INTO vod (
+		vod_no
+		, vod_name
+		, mem_id
+		, vod_playtime
+		, vod_view
+		, vod_path
+		, live_no
+		, vod_type
+		, vod_status
+		, file_group_no
+		) VALUES ( #{vodNo}
+		, #{liveName}
+		, #{memId}
+		, #{liveView}
+		, 0
+		, '/resources/upload/recordings/output'||#{liveNo}||'.mp4'
+		, #{liveNo}
+		, 1
+		, 0
+		, #{fileGroupNo} )
+	</insert>
+
+	<select id="setCommRegNick" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.CommunityVO">
+		SELECT
+		comm_reg_nick
+		FROM
+		community_regdata
+		where mem_id=#{memId}
+		and group_no=#{groupNo}
+	</select>
+	<select id="setArtistSet" parameterType="hashMap"
+		resultType="kr.or.ddit.vo.CommunityVO">
+		SELECT
+		CR.*
+		, FG.FILE_REGDATE, FD.FILE_SN, FD.FILE_ORIGINAL_NAME, FD.FILE_SAVE_NAME
+		, FD.FILE_SAVE_LOCATE, FD.FILE_SIZE, FD.FILE_EXT,FD.FILE_MIME
+		,
+		FD.FILE_FANCYSIZE, FD.FILE_SAVE_DATE, FD.FILE_DOWNCOUNT
+		FROM
+		community_regdata CR
+				LEFT OUTER JOIN FILE_GROUP FG ON CR.FILE_GROUP_NO = FG.FILE_GROUP_NO
+		LEFT OUTER JOIN FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+		where mem_id=#{memId}
+		and group_no=#{groupNo}
+	</select>
+
+</mapper>

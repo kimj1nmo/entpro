@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.comm.mapper.ArtiProfileMapper">
+
+	<resultMap type="kr.or.ddit.vo.ArtistVO" id="artistMap2">
+		<result property="artistNo" column="ARTIST_NO" />
+		<result property="artistName" column="ARTIST_NAME" />
+		<result property="artistProfile" column="ARTIST_PROFILE" />
+		<result property="artistBirth" column="ARTIST_BIRTH" />
+		<result property="artistIntrcn" column="ARTIST_INTRCN" />
+		<result property="memId" column="MEM_ID" />
+		<result property="fileGroupNo" column="FILE_GROUP_NO" />
+		<result property="groupNo" column="GROUP_NO" />
+		<result property="fileSaveLocate" column="FILE_SAVE_LOCATE" />
+		<association property="fileGroupVO"
+			resultMap="fileGroupMap"></association>
+	</resultMap>
+
+    <resultMap type="kr.or.ddit.vo.FileGroupVO" id="fileGroupMap">
+        <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+        <result property="fileRegdate" column="FILE_REGDATE"/>
+        <collection property="fileDetailVOList" resultMap="fileDetailMap"></collection>
+    </resultMap>
+
+    <resultMap type="kr.or.ddit.vo.FileDetailVO" id="fileDetailMap">
+        <result property="fileSn" column="FILE_SN"/>
+        <result property="fileGroupNo" column="FILE_GROUP_NO"/>
+        <result property="fileOriginalName" column="FILE_ORIGINAL_NAME"/>
+        <result property="fileSaveName" column="FILE_SAVE_NAME"/>
+        <result property="fileSaveLocate" column="FILE_SAVE_LOCATE"/>
+        <result property="fileSize" column="FILE_SIZE"/>
+        <result property="fileExt" column="FILE_EXT"/>
+        <result property="fileMime" column="FILE_MIME"/>
+        <result property="fileFancysize" column="FILE_FANCYSIZE"/>
+        <result property="fileSaveDate" column="FILE_SAVE_DATE"/>
+        <result property="fileDowncount" column="FILE_DOWNCOUNT"/>
+    </resultMap>
+    <!-- 그룹 번호로 아티스트들의 이름과 사진 경로 가져오기 -->
+    <select id="getArtistsByGroupNo" resultMap="artistMap2">
+        SELECT 
+        	A.MEM_ID
+            A.ARTIST_NO,
+            A.ARTIST_NAME,
+            A.FILE_GROUP_NO,
+            FD.FILE_SAVE_LOCATE
+        FROM 
+            GROUP_PSITN GP
+        JOIN 
+            ARTIST A ON GP.ARTIST_NO = A.ARTIST_NO
+        LEFT JOIN 
+            FILE_GROUP FG ON A.FILE_GROUP_NO = FG.FILE_GROUP_NO
+        LEFT JOIN 
+            FILE_DETAIL FD ON FG.FILE_GROUP_NO = FD.FILE_GROUP_NO
+        WHERE 
+            GP.GROUP_NO = #{groupNo}
+    </select>
+<!-- 아티스트 프로필 가져오기 -->
+<select id="getArtistProfile" resultMap="artistMap2">
+    SELECT
+    A.ARTIST_NO,
+    A.ARTIST_NAME,
+    A.ARTIST_PROFILE,
+    A.ARTIST_BIRTH,
+    A.ARTIST_INTRCN,
+    A.MEM_ID,
+    A.FILE_GROUP_NO, -- ARTIST 테이블에서 직접 FILE_GROUP_NO 사용
+    F.FILE_REGDATE,
+    FD.FILE_SN,
+    FD.FILE_ORIGINAL_NAME,
+    FD.FILE_SAVE_NAME,
+    FD.FILE_SAVE_LOCATE,
+    FD.FILE_SIZE,
+    FD.FILE_EXT,
+    FD.FILE_MIME
+FROM ARTIST A
+LEFT JOIN FILE_GROUP F
+    ON A.FILE_GROUP_NO = F.FILE_GROUP_NO -- ARTIST와 FILE_GROUP을 FILE_GROUP_NO로 JOIN
+LEFT JOIN FILE_DETAIL FD
+    ON F.FILE_GROUP_NO = FD.FILE_GROUP_NO -- FILE_GROUP과 FILE_DETAIL을 FILE_GROUP_NO로 JOIN
+WHERE A.ARTIST_NO = #{artistNo}
+
+</select>
+<!-- 회원 생일정보 조회 -->
+<select id="getArtistBirth" parameterType="string" resultType="ArtistVO">
+    SELECT artist_birth AS artistBirth
+    FROM artist
+    WHERE mem_id = #{memId}
+</select>
+<!-- 회원 생일정보 조회 -->
+<select id="getArtistBirth1" parameterType="string" resultType="ArtistVO">
+    SELECT artist_birth AS artistBirth
+    FROM artist
+    WHERE mem_id = #{memId2}
+</select>
+
+
+
+</mapper>

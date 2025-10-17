@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.page.companypage.manageshop.ManageGoodsMapper">
+
+<resultMap id="goodsMap" type="kr.or.ddit.vo.GoodsVO">
+    <id property="gdsNo" column="gdsNo"/>
+    <result property="ctgryNo" column="ctgryNo"/>
+    <result property="gdsNm" column="gdsNm"/>
+    <result property="gdsPrice" column="gdsPrice"/>
+    <result property="fileGroupNo" column="fileGroupNo"/>
+    <result property="gdsDc" column="gdsDc"/>
+    <result property="memId" column="memId"/>
+    <result property="gdsDate" column="gdsDate"/>
+
+
+<!-- ✅ GroupsVO 매핑 -->
+    <association property="groups" javaType="kr.or.ddit.vo.GroupsVO">
+        <result property="groupNo" column="groupNo"/>
+        <result property="groupName" column="groupName"/>
+    </association>
+
+    <!-- ✅ GdsCtgryVO 매핑 -->
+    <association property="gdsCtgry" javaType="kr.or.ddit.vo.GdsCtgryVO">
+        <result property="gdsCtgryNo" column="ctgryNo"/>
+        <result property="gdsCtgryNm" column="gdsCtgryNm"/>
+    </association>
+
+    <!-- ✅ 여러 개의 이미지 파일을 fileDetailVOList에 매핑 -->
+    <collection property="fileDetailVOList" ofType="kr.or.ddit.vo.FileDetailVO">
+        <id property="fileSn" column="fileSn"/>
+        <result property="fileOriginalName" column="fileOriginalName"/>
+        <result property="fileSaveName" column="fileSaveName"/>
+        <result property="fileSaveLocate" column="fileSaveLocate"/>
+        <result property="fileSize" column="fileSize"/>
+        <result property="fileExt" column="fileExt"/>
+        <result property="fileMime" column="fileMime"/>
+    </collection>
+</resultMap>
+
+
+
+
+
+<!-- 특정 상품 조회 -->
+<select id="getGoodsById" parameterType="int" resultType="kr.or.ddit.vo.GoodsVO">
+    SELECT
+        GDS_NO AS gdsNo,
+        CTGRY_NO AS ctgryNo,
+        GDS_NM AS gdsNm,
+        GDS_PRICE AS gdsPrice,
+        FILE_GROUP_NO AS fileGroupNo,
+        GDS_DC AS gdsDc,
+        MEM_ID AS memId,
+        GDS_DATE AS gdsDate
+    FROM GOODS
+    WHERE GDS_NO = #{gdsNo}
+</select>
+
+ <!-- 가장 높은 GDS_NO 조회 -->
+<select id="getMaxGdsNo" resultType="int">
+    SELECT MAX(GDS_NO) FROM GOODS
+</select>
+
+<!-- 상품 전체 조회 -->
+<select id="getAllGoods" resultMap="goodsMap">
+    SELECT
+    G.GDS_NO AS gdsNo,
+    G.CTGRY_NO AS ctgryNo,
+    G.GDS_NM AS gdsNm,
+    G.GDS_PRICE AS gdsPrice,
+    G.FILE_GROUP_NO AS fileGroupNo,
+    G.GDS_DC AS gdsDc,
+    G.MEM_ID AS memId,
+    G.GDS_DATE AS gdsDate,
+    G.GDSSTATUS AS gdsStatus,
+
+    -- ✅ GroupsVO 매핑용
+    GP.GROUP_NO AS groupNo,
+    NVL(GP.GROUP_NAME, 'No Group') AS groupName,
+
+    -- ✅ GdsCtgryVO 매핑용
+    GC.GDS_CTGRY_NO AS gdsCtgryNo,
+    NVL(GC.GDS_CTGRY_NM, 'No Category') AS gdsCtgryNm,
+
+    -- ✅ 파일 정보
+    FD.FILE_SN AS fileSn,
+    FD.FILE_ORIGINAL_NAME AS fileOriginalName,
+    FD.FILE_SAVE_NAME AS fileSaveName,
+    FD.FILE_SAVE_LOCATE AS fileSaveLocate,
+    FD.FILE_SIZE AS fileSize,
+    FD.FILE_EXT AS fileExt,
+    FD.FILE_MIME AS fileMime
+FROM GOODS G
+LEFT JOIN GROUPS GP ON G.GROUP_NO = GP.GROUP_NO  -- ✅ GroupsVO용 조인
+LEFT JOIN GDS_CTGRY GC ON G.CTGRY_NO = GC.GDS_CTGRY_NO -- ✅ GdsCtgryVO용 조인
+LEFT JOIN FILE_DETAIL FD ON G.FILE_GROUP_NO = FD.FILE_GROUP_NO -- ✅ 파일 조인
+ORDER BY G.GDS_NO
+
+</select>
+
+
+
+
+<!-- 📌 GOODS 테이블 데이터 삽입 (FILE_GROUP은 따로 생성 후 전달받음) -->
+    <insert id="insertGoods" parameterType="kr.or.ddit.vo.GoodsVO">
+        INSERT INTO GOODS (
+            GDS_NO, CTGRY_NO, GDS_NM, GDS_PRICE, FILE_GROUP_NO,
+            GDS_DC, MEM_ID, GDS_DATE, GROUP_NO
+        ) VALUES (
+            SEQ_GOODS.NEXTVAL, #{ctgryNo}, #{gdsNm}, #{gdsPrice},
+            #{fileGroupNo}, #{gdsDc}, #{memId}, SYSDATE, #{groupNo}
+        )
+    </insert>
+
+    <update id="updateGoods" parameterType="kr.or.ddit.vo.GoodsVO">
+    UPDATE GOODS
+    SET
+        CTGRY_NO = #{ctgryNo},
+        GDS_NM = #{gdsNm},
+        GDS_PRICE = #{gdsPrice},
+        GDS_DC = #{gdsDc},
+        MEM_ID = #{memId},
+        GROUP_NO = #{groupNo},
+        GDS_DATE = SYSDATE
+        <if test="fileGroupNo != null">
+            , FILE_GROUP_NO = #{fileGroupNo}
+        </if>
+    WHERE GDS_NO = #{gdsNo}
+</update>
+
+</mapper>
